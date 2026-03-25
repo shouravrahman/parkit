@@ -1,0 +1,80 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap');
+@import '../components/organisms/map/map.css';
+@import 'react-toastify/dist/ReactToastify.css';
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --color-surface: hsl(225, 15%, 7%);
+    --color-surface-1: hsl(225, 15%, 11%);
+    --color-surface-2: hsl(225, 12%, 16%);
+    --color-surface-3: hsl(225, 10%, 22%);
+    --color-glass: rgba(255, 255, 255, 0.05);
+    --color-glass-border: rgba(255, 255, 255, 0.1);
+    --color-primary: hsl(38, 100%, 55%);
+    --color-primary-glow: hsla(38, 100%, 55%, 0.2);
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-dark text-white font-sans antialiased;
+    font-family: 'Inter', system-ui, sans-serif;
+  }
+}
+
+/* ── Glass utility ─────────────────────────────── */
+@layer utilities {
+  .glass {
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+  }
+  .glass-dark {
+    background: rgba(0, 0, 0, 0.45);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+  }
+  .text-gradient {
+    background: linear-gradient(135deg, hsl(38,100%,65%), hsl(38,100%,45%));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .glow-primary {
+    box-shadow: 0 0 24px var(--color-primary-glow);
+  }
+}
+
+/* ── Toast overrides ───────────────────────────── */
+.Toastify__toast {
+  @apply rounded-xl font-sans shadow-2xl;
+  background: var(--color-surface-2) !important;
+  color: #fff !important;
+  border: 1px solid rgba(255,255,255,0.1);
+}
+.Toastify__progress-bar-theme--light {
+  background: var(--color-primary);
+  @apply rounded-full;
+}
+.Toastify__close-button {
+  color: rgba(255,255,255,0.6) !important;
+}
+
+/* ── Checker background ────────────────────────── */
+.bg-checker {
+  background-image:
+    linear-gradient(45deg, rgba(255,255,255,0.04) 25%, transparent 25%),
+    linear-gradient(-45deg, rgba(255,255,255,0.04) 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, rgba(255,255,255,0.04) 75%),
+    linear-gradient(-45deg, transparent 75%, rgba(255,255,255,0.04) 75%);
+  background-size: 1rem 1rem;
+  background-position: 0 0, 0 8px, 8px -8px, -8px 0px;
+}

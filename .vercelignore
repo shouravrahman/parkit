@@ -1,0 +1,6 @@
+apps/api
+.env.local
+.env.*.local
+.git
+.gitignore
+node_modules
