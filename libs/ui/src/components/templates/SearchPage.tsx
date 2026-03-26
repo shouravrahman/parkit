@@ -3,7 +3,6 @@ import { useCallback } from 'react'
 import { Map } from '../organisms/map/Map'
 import { Panel } from '../organisms/map/Panel'
 import { DefaultZoomControls } from '../organisms/map/ZoomControls'
-import { ViewStateChangeEvent } from 'react-map-gl'
 import { initialViewState } from '@parkit/util/constants'
 import { SearchPlaceBox } from '../organisms/map/SearchPlacesBox'
 import { useFormContext } from 'react-hook-form'
@@ -14,6 +13,49 @@ import { HtmlInput } from '../atoms/HtmlInput'
 import { toLocalISOString } from '@parkit/util/date'
 import { ShowGarages } from '../organisms/search/ShowGarages'
 import { FilterSidebar } from '../organisms/search/FilterSidebar'
+import { useMapEvents } from 'react-leaflet'
+
+const BoundsWatcher = ({
+  onBoundsChange,
+}: {
+  onBoundsChange: (bounds: {
+    ne_lat: number
+    ne_lng: number
+    sw_lat: number
+    sw_lng: number
+  }) => void
+}) => {
+  const map = useMapEvents({
+    load: () => {
+      const b = map.getBounds()
+      onBoundsChange({
+        ne_lat: b.getNorthEast().lat,
+        ne_lng: b.getNorthEast().lng,
+        sw_lat: b.getSouthWest().lat,
+        sw_lng: b.getSouthWest().lng,
+      })
+    },
+    dragend: () => {
+      const b = map.getBounds()
+      onBoundsChange({
+        ne_lat: b.getNorthEast().lat,
+        ne_lng: b.getNorthEast().lng,
+        sw_lat: b.getSouthWest().lat,
+        sw_lng: b.getSouthWest().lng,
+      })
+    },
+    zoomend: () => {
+      const b = map.getBounds()
+      onBoundsChange({
+        ne_lat: b.getNorthEast().lat,
+        ne_lng: b.getNorthEast().lng,
+        sw_lat: b.getSouthWest().lat,
+        sw_lng: b.getSouthWest().lng,
+      })
+    },
+  })
+  return null
+}
 
 export const SearchPage = () => {
   const {
@@ -23,36 +65,30 @@ export const SearchPage = () => {
     formState: { errors },
     trigger,
   } = useFormContext<FormTypeSearchGarage>()
-  console.log('errors ', errors)
+
   const formData = watch()
 
-  const handleMapChange = useCallback(
-    (target: ViewStateChangeEvent['target']) => {
-      const bounds = target.getBounds()
-      const locationFilter = {
-        ne_lat: bounds?.getNorthEast().lat || 0,
-        ne_lng: bounds?.getNorthEast().lng || 0,
-        sw_lat: bounds?.getSouthWest().lat || 0,
-        sw_lng: bounds?.getSouthWest().lng || 0,
-      }
+  const handleBoundsChange = useCallback(
+    (locationFilter: {
+      ne_lat: number
+      ne_lng: number
+      sw_lat: number
+      sw_lng: number
+    }) => {
       setValue('locationFilter', locationFilter)
     },
     [setValue],
   )
 
   return (
-    <Map
-      onLoad={(e) => handleMapChange(e.target)}
-      onDragEnd={(e) => handleMapChange(e.target)}
-      onZoomEnd={(e) => handleMapChange(e.target)}
-      initialViewState={initialViewState}
-    >
+    <Map initialViewState={initialViewState}>
+      <BoundsWatcher onBoundsChange={handleBoundsChange} />
       <ShowGarages />
       <Panel position="left-top">
         <div className="flex flex-col items-stretch">
           <SearchPlaceBox />
           <div className="flex relative pl-1 flex-col mt-1 bg-white/40 items-center gap-1 backdrop-blur-sm">
-            <div className=" absolute left-[1px] top-1/2 -translate-y-1/2 ">
+            <div className="absolute left-[1px] top-1/2 -translate-y-1/2">
               <IconArrowDown className="p-1" />
             </div>
             <div className="flex gap-1 items-center">
@@ -62,7 +98,7 @@ export const SearchPage = () => {
                 className="w-full p-2 text-lg font-light border-0"
                 min={toLocalISOString(new Date()).slice(0, 16)}
                 {...register('startTime', {
-                  onChange(event) {
+                  onChange() {
                     trigger('startTime')
                     trigger('endTime')
                   },
@@ -76,7 +112,7 @@ export const SearchPage = () => {
                 type="datetime-local"
                 className="w-full p-2 text-lg font-light border-0"
                 {...register('endTime', {
-                  onChange(event) {
+                  onChange() {
                     trigger('endTime')
                   },
                 })}
@@ -90,13 +126,11 @@ export const SearchPage = () => {
       </Panel>
       {errors ? (
         <Panel position="center-bottom">
-          {Object.entries(errors).map(([key, value]) => {
-            return (
-              <div className="text-red-800 p-2 shadow bg-white" key={key}>
-                {key}: {value.message}
-              </div>
-            )
-          })}
+          {Object.entries(errors).map(([key, value]) => (
+            <div className="text-red-800 p-2 shadow bg-white" key={key}>
+              {key}: {(value as any).message}
+            </div>
+          ))}
         </Panel>
       ) : null}
       <Panel position="right-top">

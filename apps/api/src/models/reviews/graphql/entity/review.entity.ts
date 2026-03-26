@@ -4,14 +4,18 @@ import { RestrictProperties } from 'src/common/dtos/common.input'
 
 @ObjectType()
 export class Review implements RestrictProperties<Review, ReviewType> {
+  @Field()
   id: number
+  @Field()
   createdAt: Date
+  @Field()
   updatedAt: Date
+  @Field()
   rating: number
   @Field({ nullable: true })
   comment: string
+  @Field()
   customerId: string
+  @Field()
   garageId: number
-  // Todo Add below to make optional fields optional.
-  // @Field({ nullable: true })
 }

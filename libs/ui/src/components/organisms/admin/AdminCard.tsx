@@ -12,22 +12,28 @@ export const AdminCard = ({ admin, children }: AdminCardProps) => {
   const session = useSession()
   const uid = session.data?.user?.uid
   return (
-    <div className="bg-white p-2 shadow-lg">
-      <div className="flex items-start gap-2">
-        <h2 className="text-lg font-bold ">{admin.user?.name}</h2>
+    <div className="bg-dark-100 border border-white/10 rounded-xl p-4 hover:border-primary/30 transition-colors duration-300">
+      <div className="flex items-center gap-2 mb-2">
+        <h2 className="text-base font-semibold text-white">
+          {admin.user?.name || 'Unknown'}
+        </h2>
         {uid === admin.uid ? (
-          <span className="px-1 text-xs bg-primary">You</span>
+          <span className="px-2 py-0.5 text-xs rounded-full bg-primary/20 text-primary border border-primary/30">
+            You
+          </span>
         ) : null}
       </div>
-      <p className="text-xs text-gray"> {admin.uid}</p>
-      <div className="text-xs text-gray mt-1">
-        <p>Since {format(new Date(admin.createdAt), 'PP')}</p>
-      </div>
-      <p className="mt-2">
-        <span className="text-2xl">{admin.verificationsCount}</span>{' '}
-        <span className="text-sm text-gray">verifications.</span>
+      <p className="text-xs text-gray-500 font-mono truncate">{admin.uid}</p>
+      <p className="text-xs text-gray-500 mt-1">
+        Since {format(new Date(admin.createdAt), 'PP')}
       </p>
-      <div className="mt-2">{children}</div>
+      <div className="mt-3 flex items-baseline gap-1">
+        <span className="text-xl font-bold text-white">
+          {admin.verificationsCount}
+        </span>
+        <span className="text-xs text-gray-500">verifications</span>
+      </div>
+      <div className="mt-3">{children}</div>
     </div>
   )
 }

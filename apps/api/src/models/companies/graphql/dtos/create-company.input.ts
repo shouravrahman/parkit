@@ -1,4 +1,5 @@
-import { InputType, PickType } from '@nestjs/graphql'
+import { Field, InputType } from '@nestjs/graphql'
+import { PickType } from '@nestjs/graphql'
 import { Company } from '../entity/company.entity'
 
 @InputType()
@@ -7,6 +8,8 @@ export class CreateCompanyInput extends PickType(
   ['displayName', 'description'],
   InputType,
 ) {
+  @Field()
   managerId: string
+  @Field({ nullable: true })
   managerName?: string
 }

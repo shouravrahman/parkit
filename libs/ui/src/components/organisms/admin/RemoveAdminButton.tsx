@@ -24,7 +24,7 @@ export const RemoveAdminButton = ({ uid }: { uid: string }) => {
         loading={loading}
         onClick={() => setOpen(true)}
       >
-        <IconTrash className="w-8 h-8 p-2 bg-red-50" />
+        <IconTrash className="w-8 h-8 p-2 text-red-400 hover:text-red-300 transition-colors" />
       </Button>
       <Dialog open={open} setOpen={setOpen} title={'Delete'}>
         <div>

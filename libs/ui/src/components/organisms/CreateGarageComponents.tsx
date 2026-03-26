@@ -1,11 +1,7 @@
 import { FormTypeCreateGarage } from '@parkit/forms/src/createGarage'
-import { ViewState } from '@parkit/util/types'
-import { useEffect } from 'react'
 import { useWatch, useFormContext, useFieldArray } from 'react-hook-form'
 import { Marker } from '../organisms/map/MapMarker'
 import { ParkingIcon } from '../atoms/ParkingIcon'
-import { initialViewState } from '@parkit/util/constants'
-import { dividerClasses } from '@mui/material'
 import { Accordion } from '../atoms/Accordion'
 import { Button } from '../atoms/Button'
 import { IconPlus } from '@tabler/icons-react'
@@ -20,14 +16,12 @@ export const GarageMapMarker = () => {
 
   return (
     <Marker
-      pitchAlignment="auto"
-      longitude={location?.lng || 0}
       latitude={location?.lat || 0}
+      longitude={location?.lng || 0}
       draggable
       onDragEnd={({ lngLat }) => {
-        const { lat, lng } = lngLat
-        setValue('location.lat', lat || 0)
-        setValue('location.lng', lng || 0)
+        setValue('location.lat', lngLat.lat || 0)
+        setValue('location.lng', lngLat.lng || 0)
       }}
     >
       <ParkingIcon />

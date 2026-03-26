@@ -9,16 +9,16 @@ export class AdminOrderByWithRelationInputStrict implements RestrictProperties<
   AdminOrderByWithRelationInputStrict,
   Prisma.AdminOrderByWithRelationInput
 > {
+  @Field(() => VerificationOrderByRelationAggregateInput, { nullable: true })
   Verifications: VerificationOrderByRelationAggregateInput
-  @Field(() => Prisma.SortOrder)
+  @Field(() => Prisma.SortOrder, { nullable: true })
   uid: Prisma.SortOrder
-  @Field(() => Prisma.SortOrder)
+  @Field(() => Prisma.SortOrder, { nullable: true })
   createdAt: Prisma.SortOrder
-  @Field(() => Prisma.SortOrder)
+  @Field(() => Prisma.SortOrder, { nullable: true })
   updatedAt: Prisma.SortOrder
+  @Field(() => UserOrderByWithRelationInput, { nullable: true })
   User: UserOrderByWithRelationInput
-  // Todo: Add below field decorator to the SortOrder properties.
-  // @Field(() => Prisma.SortOrder)
 }
 
 @InputType()

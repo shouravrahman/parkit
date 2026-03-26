@@ -13,10 +13,15 @@ class FindManyAdminArgsStrict implements RestrictProperties<
   FindManyAdminArgsStrict,
   Omit<Prisma.AdminFindManyArgs, 'include' | 'select'>
 > {
+  @Field(() => AdminWhereInput, { nullable: true })
   where: AdminWhereInput
+  @Field(() => [AdminOrderByWithRelationInput], { nullable: true })
   orderBy: AdminOrderByWithRelationInput[]
+  @Field(() => AdminWhereUniqueInput, { nullable: true })
   cursor: AdminWhereUniqueInput
+  @Field({ nullable: true })
   take: number
+  @Field({ nullable: true })
   skip: number
   @Field(() => [Prisma.AdminScalarFieldEnum])
   distinct: Prisma.AdminScalarFieldEnum[]

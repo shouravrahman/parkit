@@ -61,7 +61,7 @@ export const authOptions: NextAuthOptions = {
           const name = data.login.user.name
 
           return { id: uid, name, image, email }
-        } catch (error) {}
+        } catch (error) { }
         return null
       },
     }),
@@ -118,7 +118,7 @@ export const authOptions: NextAuthOptions = {
   },
   cookies: {
     sessionToken: {
-      name: `${secureCookies ? '__Secure-' : ''}next-auth.session-token`,
+      name: process.env.NEXTAUTH_COOKIE_NAME || `${secureCookies ? '__Secure-' : ''}next-auth.session-token`,
       options: {
         httpOnly: true,
         sameSite: 'lax',

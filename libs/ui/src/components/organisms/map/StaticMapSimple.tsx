@@ -2,7 +2,6 @@ import Image from 'next/image'
 
 export const StaticMapSimple = ({
   position,
-  padding = [100, 100, 100],
   className = 'w-full shadow-xl aspect-square',
 }: {
   position: { lng: number; lat: number }
@@ -10,18 +9,20 @@ export const StaticMapSimple = ({
   className?: string
 }) => {
   if (!position) {
-    return <div className="w-full bg-gray-100 shadow-xl aspect-square" />
+    return <div className="w-full bg-gray-800 shadow-xl aspect-square" />
   }
 
-  const url = `https://api.mapbox.com/styles/v1/iamkarthick/clk4em1h900i201pf3jvuei21/static/pin-s(${position.lng},${position.lat})/${position.lng},${position.lat},9,0/600x600?access_token=${process.env.NEXT_PUBLIC_MAPBOX_TOKEN}`
+  // Using staticmap.net — free OSM-based static map tiles
+  const url = `https://staticmap.openstreetmap.de/staticmap.php?center=${position.lat},${position.lng}&zoom=15&size=600x600&markers=${position.lat},${position.lng},red`
 
   return (
     <Image
       src={url}
       alt="Map"
-      className={` ${className}`}
-      width={200}
-      height={200}
+      className={className}
+      width={600}
+      height={600}
+      unoptimized
     />
   )
 }

@@ -106,9 +106,9 @@ export const ManageValets = ({
             {valet?.pickupInfo?.lng && valet?.pickupInfo?.lat ? (
               <>
                 <Marker
-                  pitchAlignment="auto"
-                  longitude={valet?.pickupInfo?.lng}
                   latitude={valet?.pickupInfo?.lat}
+                  longitude={valet?.pickupInfo?.lng}
+                  variant="user"
                   draggable
                   onDragEnd={({ lngLat }) => {
                     const { lat, lng } = lngLat
@@ -119,14 +119,7 @@ export const ManageValets = ({
                       setValue('valet.dropoffInfo.lng', lng || 0)
                     }
                   }}
-                >
-                  <div className="flex flex-col items-center">
-                    <IconUser />
-                    <span>
-                      Pickup {!valet.differentLocations ? '& drop off' : null}
-                    </span>
-                  </div>
-                </Marker>
+                />
                 <Directions
                   sourceId={'pickup_route'}
                   origin={{ lat, lng }}
@@ -146,21 +139,16 @@ export const ManageValets = ({
             valet?.dropoffInfo?.lat ? (
               <>
                 <Marker
-                  pitchAlignment="auto"
-                  longitude={valet.dropoffInfo.lng}
                   latitude={valet.dropoffInfo.lat}
+                  longitude={valet.dropoffInfo.lng}
+                  variant="user"
                   draggable
                   onDragEnd={({ lngLat }) => {
                     const { lat, lng } = lngLat
                     setValue('valet.dropoffInfo.lat', lat || 0)
                     setValue('valet.dropoffInfo.lng', lng || 0)
                   }}
-                >
-                  <div className="flex flex-col items-center">
-                    <IconUser />
-                    <span>Drop off</span>
-                  </div>
-                </Marker>
+                />
                 <Directions
                   sourceId={'dropoff_route'}
                   origin={{ lat, lng }}

@@ -4,12 +4,14 @@ import { RestrictProperties } from 'src/common/dtos/common.input'
 
 @ObjectType()
 export class Manager implements RestrictProperties<Manager, ManagerType> {
+  @Field()
   uid: string
+  @Field()
   createdAt: Date
+  @Field()
   updatedAt: Date
   @Field({ nullable: true })
   displayName: string
+  @Field({ nullable: true })
   companyId: number
-  // Todo Add below to make optional fields optional.
-  // @Field({ nullable: true })
 }

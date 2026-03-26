@@ -16,7 +16,7 @@ export const ManageAdmins = () => {
 
   return (
     <>
-      <div className="flex justify-end">
+      <div className="flex justify-end mt-4">
         <CreateAdmin />
       </div>
       <ShowData
@@ -32,13 +32,11 @@ export const ManageAdmins = () => {
         title={'Manage admins'}
       >
         {data?.admins.map((admin) => (
-          <div key={admin.uid} className="pl-0.5 border-l-2  border-primary">
-            <AdminCard key={admin.uid} admin={admin}>
-              <div className="flex justify-end">
-                <RemoveAdminButton uid={admin.uid} />
-              </div>
-            </AdminCard>
-          </div>
+          <AdminCard key={admin.uid} admin={admin}>
+            <div className="flex justify-end">
+              <RemoveAdminButton uid={admin.uid} />
+            </div>
+          </AdminCard>
         ))}
       </ShowData>
     </>

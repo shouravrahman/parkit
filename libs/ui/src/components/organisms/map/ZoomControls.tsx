@@ -1,13 +1,10 @@
+'use client'
 import { MouseEventHandler, ReactNode } from 'react'
-
 import { IconMinus, IconParking, IconPlus } from '@tabler/icons-react'
-
-import { useMap } from 'react-map-gl'
-
-export interface IZoomControlsProps {}
+import { useMap } from 'react-leaflet'
 
 const MapControls = ({ children }: { children: ReactNode }) => (
-  <div className="flex flex-col overflow-hidden gap-0.5 space-y rounded shadow-lg divide-primary-800 backdrop-blur-sm">
+  <div className="flex flex-col overflow-hidden rounded shadow-lg divide-y divide-white/10 backdrop-blur-sm">
     {children}
   </div>
 )
@@ -20,7 +17,7 @@ const ZoomControlButton = ({
   onClick: MouseEventHandler<HTMLButtonElement>
 }) => (
   <button
-    className=" hover:bg-white bg-white/40"
+    className="bg-white/80 hover:bg-white transition-colors"
     type="button"
     onClick={onClick}
   >
@@ -29,19 +26,18 @@ const ZoomControlButton = ({
 )
 
 const ZoomIn = () => {
-  const { current: map } = useMap()
-
+  const map = useMap()
   return (
-    <ZoomControlButton onClick={() => map?.zoomIn()}>
+    <ZoomControlButton onClick={() => map.zoomIn()}>
       <IconPlus className="w-8 h-8 p-1.5 text-black" />
     </ZoomControlButton>
   )
 }
 
 const ZoomOut = () => {
-  const { current: map } = useMap()
+  const map = useMap()
   return (
-    <ZoomControlButton onClick={() => map?.zoomOut()}>
+    <ZoomControlButton onClick={() => map.zoomOut()}>
       <IconMinus className="w-8 h-8 p-1.5 text-black" />
     </ZoomControlButton>
   )
@@ -54,11 +50,11 @@ export const CenterOfMap = ({
   onClick: (latLng: { lng: number; lat: number }) => void
   Icon?: typeof IconParking
 }) => {
-  const { current: map } = useMap()
+  const map = useMap()
   return (
     <ZoomControlButton
       onClick={() => {
-        const { lat, lng } = map?.getCenter() as { lng: number; lat: number }
+        const { lat, lng } = map.getCenter()
         onClick({ lat, lng })
       }}
     >

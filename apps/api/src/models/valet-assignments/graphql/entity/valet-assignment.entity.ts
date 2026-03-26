@@ -7,10 +7,15 @@ export class ValetAssignment implements RestrictProperties<
   ValetAssignment,
   ValetAssignmentType
 > {
+  @Field()
   bookingId: number
+  @Field()
   createdAt: Date
+  @Field()
   updatedAt: Date
+  @Field({ nullable: true })
   pickupLat: number
+  @Field({ nullable: true })
   pickupLng: number
   @Field({ nullable: true })
   returnLat: number
@@ -20,6 +25,4 @@ export class ValetAssignment implements RestrictProperties<
   pickupValetId: string
   @Field({ nullable: true })
   returnValetId: string
-  // Todo Add below to make optional fields optional.
-  // @Field({ nullable: true })
 }

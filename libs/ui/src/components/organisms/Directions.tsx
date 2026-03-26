@@ -1,7 +1,8 @@
+'use client'
 import { useDebounce } from '@parkit/util/hooks/async'
 import { LatLng, LngLatTuple } from '@parkit/util/types'
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { Source, Layer } from 'react-map-gl'
+import { Polyline } from 'react-leaflet'
 
 export const Directions = ({
   origin,
@@ -26,12 +27,10 @@ export const Directions = ({
     if (
       !originDebounced ||
       !destinationDebounced ||
-      (prevOriginRef.current &&
-        prevOriginRef.current.lat === originDebounced.lat &&
-        prevOriginRef.current.lng === originDebounced.lng &&
-        prevDestinationRef.current &&
-        prevDestinationRef.current.lat === destinationDebounced.lat &&
-        prevDestinationRef.current.lng === destinationDebounced.lng)
+      (prevOriginRef.current?.lat === originDebounced.lat &&
+        prevOriginRef.current?.lng === originDebounced.lng &&
+        prevDestinationRef.current?.lat === destinationDebounced.lat &&
+        prevDestinationRef.current?.lng === destinationDebounced.lng)
     ) {
       return
     }
@@ -39,51 +38,40 @@ export const Directions = ({
     prevOriginRef.current = originDebounced
     prevDestinationRef.current = destinationDebounced
     ;(async () => {
-      const response = await fetch(
-        `https://api.mapbox.com/directions/v5/mapbox/driving/${originDebounced.lng},${originDebounced.lat};${destinationDebounced.lng},${destinationDebounced.lat}?access_token=${process.env.NEXT_PUBLIC_MAPBOX_TOKEN}&steps=true&overview=simplified`,
-      )
+      try {
+        // OSRM — free, no API key
+        const response = await fetch(
+          `https://router.project-osrm.org/route/v1/driving/${originDebounced.lng},${originDebounced.lat};${destinationDebounced.lng},${destinationDebounced.lat}?overview=simplified&geometries=geojson`,
+        )
+        const data = await response.json()
+        const coords: LngLatTuple[] =
+          data?.routes?.[0]?.geometry?.coordinates || []
+        const newDistance = data?.routes?.[0]?.distance || 0
 
-      const data = await response.json()
+        setCoordinates(coords)
 
-      const coordinates =
-        data?.routes[0]?.legs[0]?.steps?.map(
-          (step: { maneuver: { location: any } }) => step.maneuver.location,
-        ) || []
-
-      const newDistance = data.routes[0].distance || 0
-
-      setCoordinates(coordinates)
-
-      if (newDistance !== prevDistanceRef.current && setDistance) {
-        setDistance(newDistance)
-        prevDistanceRef.current = newDistance
+        if (newDistance !== prevDistanceRef.current && setDistance) {
+          setDistance(newDistance)
+          prevDistanceRef.current = newDistance
+        }
+      } catch (e) {
+        console.error('Directions error:', e)
       }
     })()
   }, [originDebounced, destinationDebounced, setDistance])
 
-  const dataOne = useMemo(
-    () => ({
-      type: 'Feature' as const,
-      properties: {},
-      geometry: {
-        type: 'LineString' as const,
-        coordinates,
-      },
-    }),
+  // coords from OSRM are [lng, lat], Leaflet needs [lat, lng]
+  const positions = useMemo(
+    () => coordinates.map(([lng, lat]) => [lat, lng] as [number, number]),
     [coordinates],
   )
 
+  if (!positions.length) return null
+
   return (
-    <Source id={sourceId} type="geojson" data={dataOne}>
-      <Layer
-        id={sourceId}
-        type="line"
-        source="my-data"
-        paint={{
-          'line-color': 'rgb(0,0,0)',
-          'line-width': 2,
-        }}
-      />
-    </Source>
+    <Polyline
+      positions={positions}
+      pathOptions={{ color: '#f59e0b', weight: 3 }}
+    />
   )
 }

@@ -1,5 +1,6 @@
+'use client'
 import { LocationInfo, ViewState } from '@parkit/util/types'
-import { useMap } from 'react-map-gl'
+import { useMap } from 'react-leaflet'
 import { Autocomplete } from '../../atoms/Autocomplete'
 import { useSearchLocation } from '@parkit/util/hooks/location'
 import { majorCitiesLocationInfo } from '@parkit/util/constants'
@@ -7,9 +8,9 @@ import { majorCitiesLocationInfo } from '@parkit/util/constants'
 export const SearchPlaceBox = ({
   onLocationChange,
 }: {
-  onLocationChange?: (location: ViewState) => void
+  onLocationChange?: (location: ViewState & { placeName?: string }) => void
 }) => {
-  const { current: map } = useMap()
+  const map = useMap()
   const { loading, locationInfo, searchText, setLoading, setSearchText } =
     useSearchLocation()
 
@@ -29,14 +30,12 @@ export const SearchPlaceBox = ({
       onChange={async (_, v) => {
         if (v) {
           const { latLng, placeName } = v
-          await map?.flyTo({
-            center: { lat: latLng[0], lng: latLng[1] },
-            zoom: 12,
-            // essential: true,
+          map.flyTo([latLng[0], latLng[1]], 14)
+          onLocationChange?.({
+            latitude: latLng[0],
+            longitude: latLng[1],
+            placeName,
           })
-          if (onLocationChange) {
-            onLocationChange({ latitude: latLng[0], longitude: latLng[1] })
-          }
         }
       }}
     />

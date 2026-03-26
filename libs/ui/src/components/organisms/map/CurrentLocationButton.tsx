@@ -1,11 +1,10 @@
+'use client'
 import { IconCurrentLocation } from '@tabler/icons-react'
-import { useMap } from 'react-map-gl'
+import { useMap } from 'react-leaflet'
 import { Button } from '../../atoms/Button'
 
-export interface ICurrentLocationButtonProps {}
-
 export const CurrentLocationButton = () => {
-  const { current: map } = useMap()
+  const map = useMap()
 
   return (
     <Button
@@ -14,11 +13,9 @@ export const CurrentLocationButton = () => {
       onClick={() => {
         navigator.geolocation.getCurrentPosition(
           ({ coords: { latitude, longitude } }) => {
-            map?.flyTo({ center: { lat: latitude, lng: longitude }, zoom: 10 })
+            map.flyTo([latitude, longitude], 10)
           },
-          (error) => {
-            console.error(error)
-          },
+          (error) => console.error(error),
           { enableHighAccuracy: true, timeout: 20000 },
         )
       }}

@@ -8,15 +8,21 @@ registerEnumType($Enums.BookingStatus, {
 
 @ObjectType()
 export class Booking implements RestrictProperties<Booking, BookingType> {
+  @Field()
   id: number
+  @Field()
   createdAt: Date
+  @Field()
   updatedAt: Date
   @Field({ nullable: true })
   pricePerHour: number
   @Field({ nullable: true })
   totalPrice: number
+  @Field()
   startTime: Date
+  @Field()
   endTime: Date
+  @Field()
   vehicleNumber: string
   @Field({ nullable: true })
   phoneNumber: string
@@ -24,8 +30,8 @@ export class Booking implements RestrictProperties<Booking, BookingType> {
   passcode: string
   @Field(() => $Enums.BookingStatus)
   status: $Enums.BookingStatus
+  @Field()
   slotId: number
+  @Field()
   customerId: string
-  // Todo Add below to make optional fields optional.
-  // @Field({ nullable: true })
 }

@@ -1,4 +1,4 @@
-import { useMapboxDirections } from '@parkit/util/hooks/directions'
+import { useMapboxDirections as useDirections } from '@parkit/util/hooks/directions'
 import { LatLng } from '@parkit/util/types'
 import { isLatLng } from '@parkit/util'
 import { ReactNode } from 'react'
@@ -23,7 +23,7 @@ export const ValetTripCard = ({
   booking,
   children,
 }: IValetTripCardProps) => {
-  const { data, distance, error, loading } = useMapboxDirections(start, end)
+  const { data, distance, error, loading } = useDirections(start, end)
 
   if (!isLatLng(start) || !isLatLng(end)) {
     return (

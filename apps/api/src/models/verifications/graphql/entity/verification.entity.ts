@@ -9,11 +9,12 @@ export class Verification implements RestrictProperties<
 > {
   @Field()
   createdAt: Date
+  @Field()
   updatedAt: Date
+  @Field()
   verified: boolean
+  @Field()
   adminId: string
   @Field()
   garageId: number
-  // Todo Add below to make optional fields optional.
-  // @Field({ nullable: true })
 }

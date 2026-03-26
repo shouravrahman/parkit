@@ -2,13 +2,11 @@ import { SearchGaragesQuery } from '@parkit/network/src/gql/generated'
 import { useKeypress } from '@parkit/util/hooks/keys'
 import { useState } from 'react'
 import { Marker } from '../map/MapMarker'
-
-import { ParkingIcon } from '../../atoms/ParkingIcon'
 import { FormProviderBookSlot } from '@parkit/forms/src/bookSlot'
 import { useWatch } from 'react-hook-form'
 import { FormTypeSearchGarage } from '@parkit/forms/src/searchGarages'
 import { BookSlotPopup } from '../BookSlotPopup'
-import { Dialog } from '@headlessui/react'
+import { Dialog } from '../../atoms/Dialog'
 
 export const GarageMarker = ({
   marker,

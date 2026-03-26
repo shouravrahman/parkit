@@ -1,36 +1,30 @@
-import MapGl, { useMap } from 'react-map-gl'
+'use client'
+import dynamic from 'next/dynamic'
+import { ReactNode } from 'react'
 
-type MapProps = React.ComponentProps<typeof MapGl> & { height?: string }
-
-export const Map = ({ height = 'calc(100vh - 4rem)', ...props }: MapProps) => {
-  return (
-    <MapGl
-      {...props}
-      projection={{ name: 'globe' }}
-      mapStyle="mapbox://styles/iamkarthick/clebahxqe001701mo1i1adtw3"
-      mapboxAccessToken={process.env.NEXT_PUBLIC_MAPBOX_TOKEN}
-      style={{ height }}
-      scrollZoom={false}
-    >
-      <StyleMap />
-      {props.children}
-    </MapGl>
-  )
+export type MapProps = {
+  children?: ReactNode
+  height?: string
+  initialViewState?: { latitude: number; longitude: number; zoom?: number }
+  onLoad?: (e: {
+    target: { getCenter: () => { lat: number; lng: number } }
+  }) => void
+  scrollZoom?: boolean
 }
 
-export const StyleMap = () => {
-  const { current } = useMap()
+// Lazy-load the actual map implementation with SSR disabled
+// This prevents Leaflet's window references from running on the server
+const MapImpl = dynamic(() => import('./MapImpl').then((m) => m.MapImpl), {
+  ssr: false,
+  loading: () => (
+    <div
+      className="w-full bg-dark-100 animate-pulse rounded-xl"
+      style={{ height: '100%', minHeight: '400px' }}
+    />
+  ),
+})
 
-  current?.on('style.load', () => {
-    current?.getMap().setFog({
-      color: 'rgb(255, 255, 255)', // Lower atmosphere
-      range: [1, 10],
-      //   @ts-ignore
-      'high-color': 'rgb(200, 200, 200)', // Upper atmosphere
-      'horizon-blend': 0.05, // Atmosphere thickness (default 0.2 at low zooms)
-      'space-color': 'rgb(150, 150, 150)', // Background color
-      'star-intensity': 0.5, // Background star brightness (default 0.35 at low zoooms )
-    })
-  })
-  return null
-}
+export const Map = (props: MapProps) => <MapImpl {...props} />
+
+export { useMap } from 'react-leaflet'
+export const StyleMap = () => null

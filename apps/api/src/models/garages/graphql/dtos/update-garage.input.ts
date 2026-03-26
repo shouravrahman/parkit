@@ -1,8 +1,8 @@
 import { CreateGarageInput } from './create-garage.input'
-import { InputType, PartialType } from '@nestjs/graphql'
-import { Garage } from '@prisma/client'
+import { Field, InputType, PartialType } from '@nestjs/graphql'
 
 @InputType()
 export class UpdateGarageInput extends PartialType(CreateGarageInput) {
-  id: Garage['id']
+  @Field(() => Number)
+  id: number
 }
