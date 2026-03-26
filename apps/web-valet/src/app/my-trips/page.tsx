@@ -3,6 +3,8 @@ import { IsLoggedIn } from '@parkit/ui/src/components/organisms/IsLoggedIn'
 import { IsValet } from '@parkit/ui/src/components/organisms/IsValet'
 import { ValetTrips } from '@parkit/ui/src/components/templates/ValetTrips'
 
+export const dynamic = 'force-dynamic'
+
 export default function Page() {
   return (
     <main>
