@@ -1,11 +1,8 @@
-'use client'
+"use client"
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { Map } from '../organisms/map/Map'
-import { Panel } from '../organisms/map/Panel'
-import { DefaultZoomControls } from '../organisms/map/ZoomControls'
+import dynamic from 'next/dynamic'
 import { initialViewState } from '@parkit/util/constants'
 import { SearchPlaceBoxSidebar } from '../organisms/map/SearchPlacesBoxSidebar'
-import { MapFlyController } from '../organisms/map/MapFlyController'
 import { MapFlyContext, FlyToFn } from '../organisms/map/MapFlyContext'
 import { useFormContext, Controller } from 'react-hook-form'
 import {
@@ -15,42 +12,17 @@ import {
 import { IconArrowDown, IconAdjustments, IconX } from '@tabler/icons-react'
 import { IconType } from '../molecules/IconTypes'
 import { toLocalISOString } from '@parkit/util/date'
-import { ShowGarages } from '../organisms/search/ShowGarages'
-import { useMapEvents } from 'react-leaflet'
+const SearchMap = dynamic(
+  () => import('../organisms/map/SearchMap').then((m) => m.default),
+  { ssr: false },
+)
 import { RangeSlider } from '../molecules/RangeSlider'
 import { ToggleButtonGroup, ToggleButton } from '../molecules/ToggleButtonGroup'
 import { IconTypes } from '../molecules/IconTypes'
 import { PulsingDot } from '../atoms/Dot'
 import { SlotType } from '@parkit/network/src/gql/generated'
 
-const BoundsWatcher = ({
-  onBoundsChange,
-}: {
-  onBoundsChange: (bounds: {
-    ne_lat: number
-    ne_lng: number
-    sw_lat: number
-    sw_lng: number
-  }) => void
-}) => {
-  const getBounds = (m: ReturnType<typeof useMapEvents>) => ({
-    ne_lat: m.getBounds().getNorthEast().lat,
-    ne_lng: m.getBounds().getNorthEast().lng,
-    sw_lat: m.getBounds().getSouthWest().lat,
-    sw_lng: m.getBounds().getSouthWest().lng,
-  })
-
-  const map = useMapEvents({
-    moveend: () => onBoundsChange(getBounds(map)),
-    zoomend: () => onBoundsChange(getBounds(map)),
-  })
-
-  useEffect(() => {
-    onBoundsChange(getBounds(map))
-  }, [])
-
-  return null
-}
+// BoundsWatcher moved into the client-only `SearchMap` component (react-leaflet hooks are not SSR-safe)
 
 const Divider = () => <div className="border-t border-white/5" />
 
@@ -363,16 +335,13 @@ export const SearchPage = () => {
           Search & Filters
           {hasFilters && <span className="w-2 h-2 rounded-full bg-primary animate-pulse" />}
         </button>
-        {/* ── Map ── */}
+        {/* ── Map (client-only, dynamically loaded) ── */}
         <div className="flex-1 relative">
-          <Map initialViewState={initialViewState} height="100%">
-            <MapFlyController />
-            <BoundsWatcher onBoundsChange={handleBoundsChange} />
-            <ShowGarages />
-            <Panel position="right-center">
-              <DefaultZoomControls />
-            </Panel>
-          </Map>
+          <SearchMap
+            initialViewState={initialViewState}
+            height="100%"
+            onBoundsChange={handleBoundsChange}
+          />
         </div>
       </div>
     </MapFlyContext.Provider>
