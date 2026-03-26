@@ -5,7 +5,11 @@ import {
   Args,
   ResolveField,
   Parent,
+  Subscription,
 } from '@nestjs/graphql'
+import { Inject } from '@nestjs/common'
+import { PubSub } from 'graphql-subscriptions'
+import { PUB_SUB } from 'src/common/pubsub/pubsub.module'
 import { GaragesService } from './garages.service'
 import { Garage, SlotTypeCount } from './entity/garage.entity'
 import { FindManyGarageArgs, FindUniqueGarageArgs } from './dtos/find.args'
@@ -31,13 +35,17 @@ import {
 import { SlotWhereInput } from 'src/models/slots/graphql/dtos/where.args'
 import { BadRequestException } from '@nestjs/common'
 import { GarageWhereInput } from './dtos/where.args'
+import { SlotAvailabilityUpdate } from './entity/slot-availability.entity'
+
+export const SLOT_AVAILABILITY_CHANGED = 'slotAvailabilityChanged'
 
 @Resolver(() => Garage)
 export class GaragesResolver {
   constructor(
     private readonly garagesService: GaragesService,
     private readonly prisma: PrismaService,
-  ) {}
+    @Inject(PUB_SUB) private readonly pubSub: PubSub,
+  ) { }
 
   @AllowAuthenticated('manager')
   @Mutation(() => Garage)
@@ -53,7 +61,6 @@ export class GaragesResolver {
         'No company associated with the manager id.',
       )
     }
-
     return this.garagesService.create({ ...args, companyId: company.id })
   }
 
@@ -86,7 +93,6 @@ export class GaragesResolver {
     )
 
     if (startDate.getTime() < currentDate.getTime()) {
-      // Set startDate as current time
       startDate = new Date()
       const updatedEndDate = new Date(startDate)
       updatedEndDate.setSeconds(updatedEndDate.getSeconds() + diffInSeconds)
@@ -100,10 +106,6 @@ export class GaragesResolver {
     }
 
     const { where = {}, ...garageFilters } = args || {}
-
-    console.log('searchGarages bounds:', { ne_lat, ne_lng, sw_lat, sw_lng })
-    console.log('searchGarages dates:', { startDate: startDate.toISOString(), endDate: endDate.toISOString() })
-    console.log('searchGarages slotsFilter:', JSON.stringify(slotsFilter))
 
     const results = await this.prisma.garage.findMany({
       ...garageFilters,
@@ -126,31 +128,28 @@ export class GaragesResolver {
         },
       },
     })
-    console.log("searchGarages results count:", results.length)
     return results
+  }
+
+  @Subscription(() => SlotAvailabilityUpdate, {
+    filter: (payload, variables) =>
+      payload.slotAvailabilityChanged.garageId === variables.garageId,
+  })
+  slotAvailabilityChanged(@Args('garageId') _garageId: number) {
+    return this.pubSub.asyncIterableIterator(SLOT_AVAILABILITY_CHANGED)
   }
 
   @ResolveField(() => [SlotTypeCount])
   async slotCounts(@Parent() garage: Garage) {
     const slotCounts = await this.prisma.slot.groupBy({
       by: ['type'],
-      where: {
-        garageId: garage.id,
-      },
-      _count: {
-        type: true,
-      },
+      where: { garageId: garage.id },
+      _count: { type: true },
     })
-
-    return slotCounts.map(({ type, _count }) => ({
-      type,
-      count: _count.type,
-    }))
+    return slotCounts.map(({ type, _count }) => ({ type, count: _count.type }))
   }
 
-  @ResolveField(() => [MinimalSlotGroupBy], {
-    name: 'availableSlots',
-  })
+  @ResolveField(() => [MinimalSlotGroupBy], { name: 'availableSlots' })
   async availableSlots(
     @Parent() garage: Garage,
     @Args('slotsFilter', { nullable: true }) slotsFilter: SlotWhereInput,
@@ -239,12 +238,9 @@ export class GaragesResolver {
     return this.prisma.slot.findMany({ where: { garageId: garage.id } })
   }
 
-  @Query(() => AggregateCountOutput, {
-    name: 'garagesCount',
-  })
+  @Query(() => AggregateCountOutput, { name: 'garagesCount' })
   async garagesCount(
-    @Args('where', { nullable: true })
-    where: GarageWhereInput,
+    @Args('where', { nullable: true }) where: GarageWhereInput,
   ) {
     const garages = await this.prisma.garage.aggregate({
       _count: { _all: true },

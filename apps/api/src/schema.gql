@@ -554,6 +554,17 @@ type MinimalSlotGroupBy {
   count: Int!
 }
 
+type SlotAvailabilityUpdate {
+  garageId: Int!
+  availableSlots: [SlotAvailabilityCount!]!
+}
+
+type SlotAvailabilityCount {
+  type: SlotType!
+  count: Int!
+  pricePerHour: Float!
+}
+
 type ValetAssignment {
   bookingId: Float!
   createdAt: DateTime!
@@ -1266,4 +1277,8 @@ input CreateVerificationInput {
 input UpdateVerificationInput {
   verified: Boolean
   garageId: Float
+}
+
+type Subscription {
+  slotAvailabilityChanged(garageId: Float!): SlotAvailabilityUpdate!
 }

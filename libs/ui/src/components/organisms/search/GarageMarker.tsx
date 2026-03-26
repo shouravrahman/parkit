@@ -1,7 +1,11 @@
-import { memo } from 'react'
-import { SearchGaragesQuery } from '@parkit/network/src/gql/generated'
+import { memo, useState } from 'react'
+import {
+  SearchGaragesQuery,
+  SlotAvailabilityChangedDocument,
+  SlotAvailabilityChangedSubscription,
+  SlotAvailabilityChangedSubscriptionVariables,
+} from '@parkit/network/src/gql/generated'
 import { useKeypress } from '@parkit/util/hooks/keys'
-import { useState } from 'react'
 import { Marker } from '../map/MapMarker'
 import { FormProviderBookSlot } from '@parkit/forms/src/bookSlot'
 import { useWatch } from 'react-hook-form'
@@ -16,6 +20,7 @@ import {
 } from '@headlessui/react'
 import { Fragment } from 'react'
 import { IconX } from '@tabler/icons-react'
+import { useSubscription } from '@apollo/client'
 
 const GarageMarkerInner = ({
   marker,
@@ -27,20 +32,32 @@ const GarageMarkerInner = ({
 
   const { endTime, startTime } = useWatch<FormTypeSearchGarage>()
 
-  if (!marker.address?.lat || !marker.address.lng) {
-    return null
-  }
+  const { data: liveData } = useSubscription<
+    SlotAvailabilityChangedSubscription,
+    SlotAvailabilityChangedSubscriptionVariables
+  >(SlotAvailabilityChangedDocument, {
+    variables: { garageId: marker.id },
+  })
+
+  const liveSlots = liveData?.slotAvailabilityChanged?.availableSlots
+  const displaySlots = liveSlots ?? marker.availableSlots
+  const totalAvailable = displaySlots.reduce((sum, s) => sum + s.count, 0)
+  const isAvailable = totalAvailable > 0
+
+  if (!marker.address?.lat || !marker.address.lng) return null
+
+  const mergedMarker = liveSlots
+    ? { ...marker, availableSlots: liveSlots }
+    : marker
 
   return (
     <>
-      {/* Fullscreen drawer */}
       <Transition appear show={showPopup} as={Fragment}>
         <HDialog
           as="div"
           className="relative z-[1000]"
           onClose={() => setShowPopup(false)}
         >
-          {/* Backdrop */}
           <TransitionChild
             as={Fragment}
             enter="ease-out duration-200"
@@ -53,7 +70,6 @@ const GarageMarkerInner = ({
             <div className="fixed inset-0 bg-black/50 backdrop-blur-sm" />
           </TransitionChild>
 
-          {/* Full-screen panel sliding from right */}
           <div className="fixed inset-0 flex justify-end">
             <TransitionChild
               as={Fragment}
@@ -65,7 +81,6 @@ const GarageMarkerInner = ({
               leaveTo="translate-x-full"
             >
               <DialogPanel className="w-full md:max-w-[50vw] h-full bg-dark-100 border-l border-white/10 flex flex-col shadow-2xl overflow-hidden">
-                {/* Header */}
                 <div className="flex items-center justify-between px-5 py-4 border-b border-white/10 shrink-0">
                   <div>
                     <h2 className="text-base font-semibold text-white">
@@ -75,18 +90,33 @@ const GarageMarkerInner = ({
                       {marker.address?.address}
                     </p>
                   </div>
-                  <button
-                    onClick={() => setShowPopup(false)}
-                    className="p-1.5 rounded-lg text-gray-400 hover:text-white hover:bg-white/10 transition-colors"
-                  >
-                    <IconX className="w-4 h-4" />
-                  </button>
+                  <div className="flex items-center gap-2">
+                    <span
+                      className={`flex items-center gap-1.5 text-xs px-2 py-1 rounded-full font-medium ${
+                        isAvailable
+                          ? 'bg-green-500/15 text-green-400'
+                          : 'bg-red-500/15 text-red-400'
+                      }`}
+                    >
+                      <span
+                        className={`w-1.5 h-1.5 rounded-full animate-pulse ${
+                          isAvailable ? 'bg-green-400' : 'bg-red-400'
+                        }`}
+                      />
+                      {isAvailable ? `${totalAvailable} slots` : 'Full'}
+                    </span>
+                    <button
+                      onClick={() => setShowPopup(false)}
+                      className="p-1.5 rounded-lg text-gray-400 hover:text-white hover:bg-white/10 transition-colors"
+                    >
+                      <IconX className="w-4 h-4" />
+                    </button>
+                  </div>
                 </div>
 
-                {/* Scrollable content */}
                 <div className="flex-1 overflow-y-auto overflow-x-hidden">
                   <FormProviderBookSlot defaultValues={{ endTime, startTime }}>
-                    <BookSlotPopup garage={marker} />
+                    <BookSlotPopup garage={mergedMarker} />
                   </FormProviderBookSlot>
                 </div>
               </DialogPanel>
@@ -103,7 +133,14 @@ const GarageMarkerInner = ({
           setShowPopup((s) => !s)
         }}
       >
-        <ParkingIcon />
+        <div className="relative">
+          <ParkingIcon />
+          <span
+            className={`absolute -top-1 -right-1 w-3 h-3 rounded-full border-2 border-dark ${
+              isAvailable ? 'bg-green-400' : 'bg-red-400'
+            }`}
+          />
+        </div>
       </Marker>
     </>
   )

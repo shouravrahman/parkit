@@ -6,6 +6,10 @@ import {
   Args,
   Parent,
 } from '@nestjs/graphql'
+import { Inject } from '@nestjs/common'
+import { PubSub } from 'graphql-subscriptions'
+import { PUB_SUB } from 'src/common/pubsub/pubsub.module'
+import { publishSlotAvailability } from 'src/common/pubsub/publish-slot-availability'
 import { BookingsService } from './bookings.service'
 import { Booking } from './entity/booking.entity'
 import { FindManyBookingArgs, FindUniqueBookingArgs } from './dtos/find.args'
@@ -29,16 +33,30 @@ export class BookingsResolver {
   constructor(
     private readonly bookingsService: BookingsService,
     private readonly prisma: PrismaService,
-  ) {}
+    @Inject(PUB_SUB) private readonly pubSub: PubSub,
+  ) { }
 
   @AllowAuthenticated()
   @Mutation(() => Booking)
-  createBooking(
+  async createBooking(
     @Args('createBookingInput') args: CreateBookingInput,
     @GetUser() user: GetUserType,
   ) {
     checkRowLevelPermission(user, args.customerId)
-    return this.bookingsService.create(args)
+    const booking = await this.bookingsService.create(args)
+
+    // Publish updated availability for this garage
+    try {
+      await publishSlotAvailability(
+        this.pubSub,
+        this.prisma,
+        args.garageId,
+        new Date(args.startTime),
+        new Date(args.endTime),
+      )
+    } catch { }
+
+    return booking
   }
 
   @AllowAuthenticated('admin')
@@ -92,12 +110,10 @@ export class BookingsResolver {
       where: { id: garageId },
       include: { Company: { include: { Managers: true } } },
     })
-
     checkRowLevelPermission(
       user,
       garage.Company.Managers.map((manager) => manager.uid),
     )
-
     return this.bookingsService.findAll({
       cursor,
       distinct,
@@ -113,8 +129,7 @@ export class BookingsResolver {
 
   @Query(() => AggregateCountOutput)
   async bookingsCount(
-    @Args('where', { nullable: true })
-    where: BookingWhereInput,
+    @Args('where', { nullable: true }) where: BookingWhereInput,
   ) {
     const bookings = await this.prisma.booking.aggregate({
       where,
@@ -152,7 +167,6 @@ export class BookingsResolver {
     return this.bookingsService.remove(args)
   }
 
-
   @AllowAuthenticated('manager', 'admin')
   @Mutation(() => Booking)
   async updateBookingStatus(
@@ -176,17 +190,33 @@ export class BookingsResolver {
     ])
 
     const bookingStatus = status as BookingStatus
-    return this.prisma.$transaction(async (tx) => {
-      const updated = await tx.booking.update({
+    const updated = await this.prisma.$transaction(async (tx) => {
+      const b = await tx.booking.update({
         where: { id: bookingId },
         data: { status: bookingStatus },
       })
       await tx.bookingTimeline.create({
         data: { bookingId, managerId: user.uid, status: bookingStatus },
       })
-      return updated
+      return b
     })
+
+    // Publish availability update when booking is cancelled
+    if (bookingStatus === BookingStatus.CHECKED_OUT || bookingStatus === BookingStatus.VALET_RETURNED) {
+      try {
+        await publishSlotAvailability(
+          this.pubSub,
+          this.prisma,
+          booking.Slot.garageId,
+          booking.startTime,
+          booking.endTime,
+        )
+      } catch { }
+    }
+
+    return updated
   }
+
   @ResolveField(() => Slot)
   slot(@Parent() booking: Booking) {
     return this.prisma.slot.findFirst({ where: { id: booking.slotId } })

@@ -4,7 +4,11 @@ import {
   HttpLink,
   InMemoryCache,
   ApolloProvider as Provider,
+  split,
 } from '@apollo/client'
+import { GraphQLWsLink } from '@apollo/client/link/subscriptions'
+import { getMainDefinition } from '@apollo/client/utilities'
+import { createClient } from 'graphql-ws'
 import { ReactNode, useEffect, useRef } from 'react'
 import { setContext } from '@apollo/client/link/context'
 
@@ -51,8 +55,39 @@ const getClient = (uri: string): ApolloClient<object> => {
     }
   })
 
+  const httpLink = authLink.concat(new HttpLink({ uri }))
+
+  // WebSocket link for subscriptions (only in browser)
+  const wsUri = uri.replace(/^http/, 'ws')
+  const wsLink =
+    typeof window !== 'undefined'
+      ? new GraphQLWsLink(
+          createClient({
+            url: wsUri,
+            connectionParams: async () => {
+              const token = await getToken()
+              return { authorization: token ? `Bearer ${token}` : '' }
+            },
+          }),
+        )
+      : null
+
+  const splitLink = wsLink
+    ? split(
+        ({ query }) => {
+          const def = getMainDefinition(query)
+          return (
+            def.kind === 'OperationDefinition' &&
+            def.operation === 'subscription'
+          )
+        },
+        wsLink,
+        httpLink,
+      )
+    : httpLink
+
   _client = new ApolloClient({
-    link: authLink.concat(new HttpLink({ uri })),
+    link: splitLink,
     cache,
     defaultOptions: {
       watchQuery: { fetchPolicy: 'cache-and-network' },
@@ -78,7 +113,7 @@ export const ApolloProvider = ({ children }: { children: ReactNode }) => {
     return () => {
       clearInterval(interval)
       window.removeEventListener('visibilitychange', persist)
-      persist() // final save on unmount
+      persist()
     }
   }, [client])
 

@@ -350,7 +350,6 @@ export type CreateBookingInput = {
   startTime: Scalars['DateTime']['input'];
   totalPrice: Scalars['Float']['input'];
   type: SlotType;
-  garageId: Scalars['Int']['input'];
   vehicleNumber: Scalars['String']['input'];
 };
 
@@ -1407,6 +1406,19 @@ export type Slot = {
   width?: Maybe<Scalars['Int']['output']>;
 };
 
+export type SlotAvailabilityCount = {
+  __typename?: 'SlotAvailabilityCount';
+  count: Scalars['Int']['output'];
+  pricePerHour: Scalars['Float']['output'];
+  type: SlotType;
+};
+
+export type SlotAvailabilityUpdate = {
+  __typename?: 'SlotAvailabilityUpdate';
+  availableSlots: Array<SlotAvailabilityCount>;
+  garageId: Scalars['Int']['output'];
+};
+
 export type SlotListRelationFilter = {
   every?: InputMaybe<SlotWhereInput>;
   none?: InputMaybe<SlotWhereInput>;
@@ -1502,6 +1514,16 @@ export type StringListFilter = {
   hasEvery?: InputMaybe<Array<Scalars['String']['input']>>;
   hasSome?: InputMaybe<Array<Scalars['String']['input']>>;
   isEmpty?: InputMaybe<Scalars['Boolean']['input']>;
+};
+
+export type Subscription = {
+  __typename?: 'Subscription';
+  slotAvailabilityChanged: SlotAvailabilityUpdate;
+};
+
+
+export type SubscriptionSlotAvailabilityChangedArgs = {
+  garageId: Scalars['Float']['input'];
 };
 
 export type UpdateAddressInput = {
@@ -2088,6 +2110,13 @@ export type UpdateBookingStatusMutationVariables = Exact<{
 
 export type UpdateBookingStatusMutation = { __typename?: 'Mutation', updateBookingStatus: { __typename?: 'Booking', id: number, status: BookingStatus } };
 
+export type SlotAvailabilityChangedSubscriptionVariables = Exact<{
+  garageId: Scalars['Float']['input'];
+}>;
+
+
+export type SlotAvailabilityChangedSubscription = { __typename?: 'Subscription', slotAvailabilityChanged: { __typename?: 'SlotAvailabilityUpdate', garageId: number, availableSlots: Array<{ __typename?: 'SlotAvailabilityCount', type: SlotType, count: number, pricePerHour: number }> } };
+
 export const namedOperations = {
   Query: {
     Companies: 'Companies',
@@ -2121,6 +2150,9 @@ export const namedOperations = {
     RemoveAdmin: 'RemoveAdmin',
     CreateAdmin: 'CreateAdmin',
     UpdateBookingStatus: 'UpdateBookingStatus'
+  },
+  Subscription: {
+    SlotAvailabilityChanged: 'SlotAvailabilityChanged'
   },
   Fragment: {
     ValetFields: 'ValetFields',
@@ -2160,3 +2192,4 @@ export const AdminsDocument = {"kind":"Document","definitions":[{"kind":"Operati
 export const RemoveAdminDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"RemoveAdmin"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"where"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"AdminWhereUniqueInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"removeAdmin"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"where"},"value":{"kind":"Variable","name":{"kind":"Name","value":"where"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"createdAt"}},{"kind":"Field","name":{"kind":"Name","value":"user"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"name"}}]}},{"kind":"Field","name":{"kind":"Name","value":"updatedAt"}},{"kind":"Field","name":{"kind":"Name","value":"uid"}}]}}]}}]} as unknown as DocumentNode<RemoveAdminMutation, RemoveAdminMutationVariables>;
 export const CreateAdminDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"CreateAdmin"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"createAdminInput"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"CreateAdminInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"createAdmin"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"createAdminInput"},"value":{"kind":"Variable","name":{"kind":"Name","value":"createAdminInput"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"createdAt"}},{"kind":"Field","name":{"kind":"Name","value":"user"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"name"}}]}},{"kind":"Field","name":{"kind":"Name","value":"uid"}},{"kind":"Field","name":{"kind":"Name","value":"updatedAt"}}]}}]}}]} as unknown as DocumentNode<CreateAdminMutation, CreateAdminMutationVariables>;
 export const UpdateBookingStatusDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"UpdateBookingStatus"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"bookingId"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"Float"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"status"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"updateBookingStatus"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"bookingId"},"value":{"kind":"Variable","name":{"kind":"Name","value":"bookingId"}}},{"kind":"Argument","name":{"kind":"Name","value":"status"},"value":{"kind":"Variable","name":{"kind":"Name","value":"status"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"status"}}]}}]}}]} as unknown as DocumentNode<UpdateBookingStatusMutation, UpdateBookingStatusMutationVariables>;
+export const SlotAvailabilityChangedDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"subscription","name":{"kind":"Name","value":"SlotAvailabilityChanged"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"garageId"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"Float"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"slotAvailabilityChanged"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"garageId"},"value":{"kind":"Variable","name":{"kind":"Name","value":"garageId"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"garageId"}},{"kind":"Field","name":{"kind":"Name","value":"availableSlots"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"type"}},{"kind":"Field","name":{"kind":"Name","value":"count"}},{"kind":"Field","name":{"kind":"Name","value":"pricePerHour"}}]}}]}}]}}]} as unknown as DocumentNode<SlotAvailabilityChangedSubscription, SlotAvailabilityChangedSubscriptionVariables>;

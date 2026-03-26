@@ -522,3 +522,14 @@ mutation UpdateBookingStatus($bookingId: Float!, $status: String!) {
     status
   }
 }
+
+subscription SlotAvailabilityChanged($garageId: Float!) {
+  slotAvailabilityChanged(garageId: $garageId) {
+    garageId
+    availableSlots {
+      type
+      count
+      pricePerHour
+    }
+  }
+}
