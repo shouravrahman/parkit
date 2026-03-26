@@ -31,8 +31,8 @@ export const ShowValetAllPickupTrips = () => {
             time: booking.startTime,
           }}
           start={{
-            lat: booking.valetAssignment?.pickupLat,
-            lng: booking.valetAssignment?.pickupLng,
+            lat: booking.valetAssignment?.pickupLat ?? undefined,
+            lng: booking.valetAssignment?.pickupLng ?? undefined,
           }}
           end={booking.slot.garage.address}
         >
