@@ -45,8 +45,8 @@ const HistoryCard = ({
 }) => (
   <ValetTripCard
     booking={{ id: booking.id, time: booking.startTime }}
-    start={start}
-    end={end}
+    start={{ lat: start.lat ?? undefined, lng: start.lng ?? undefined }}
+    end={end ? { lat: end.lat ?? undefined, lng: end.lng ?? undefined } : undefined}
   >
     <div className="space-y-2">
       <div className="flex items-center justify-between gap-2">
@@ -148,10 +148,10 @@ export const ShowValetHistory = ({ uid }: { uid: string }) => {
         <HistoryCard
           key={`drop-${booking.id}`}
           booking={booking}
-          start={booking.slot.garage.address}
+          start={booking.slot.garage.address ? { lat: booking.slot.garage.address.lat, lng: booking.slot.garage.address.lng } : { lat: undefined, lng: undefined }}
           end={{
-            lat: booking.valetAssignment?.returnLat,
-            lng: booking.valetAssignment?.returnLng,
+            lat: booking.valetAssignment?.returnLat ?? undefined,
+            lng: booking.valetAssignment?.returnLng ?? undefined,
           }}
         />
       ))}
