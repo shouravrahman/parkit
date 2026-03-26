@@ -50,7 +50,7 @@ export const CreateAdmin = () => {
               <button
                 type="button"
                 className="text-primary underline"
-                onClick={() => setValue('uid', session.user.uid)}
+                onClick={() => setValue('uid', session.user?.uid ?? '')}
               >
                 {session.user.uid}
               </button>
