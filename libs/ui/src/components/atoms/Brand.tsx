@@ -13,14 +13,14 @@ export const Brand = ({
   type = undefined,
 }: IBrandProps) => {
   return (
-    <div className={`grid place-items-center z-50 ${className}`}>
+    <div className={`grid place-items-center z-50 group cursor-pointer ${className}`}>
       {shortForm ? (
         <div className="flex items-center gap-1.5 text-xl font-display font-bold">
           <BrandIcon />
-          <span className="text-gradient">A.</span>
+          <span className="text-gradient group-hover:tracking-widest transition-all duration-500">P.</span>
         </div>
       ) : (
-        <div className="flex items-center gap-2.5 font-display">
+        <div className="flex items-center gap-3 font-display">
           <BrandIcon />
           <div>
             <div className="flex items-baseline gap-1.5">
