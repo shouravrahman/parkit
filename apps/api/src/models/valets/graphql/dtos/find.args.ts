@@ -13,10 +13,15 @@ class FindManyValetArgsStrict implements RestrictProperties<
   FindManyValetArgsStrict,
   Omit<Prisma.ValetFindManyArgs, 'include' | 'select'>
 > {
+  @Field(() => ValetWhereInput, { nullable: true })
   where: ValetWhereInput
+  @Field(() => [ValetOrderByWithRelationInput], { nullable: true })
   orderBy: ValetOrderByWithRelationInput[]
+  @Field(() => ValetWhereUniqueInput, { nullable: true })
   cursor: ValetWhereUniqueInput
+  @Field({ nullable: true })
   take: number
+  @Field({ nullable: true })
   skip: number
   @Field(() => [Prisma.ValetScalarFieldEnum])
   distinct: Prisma.ValetScalarFieldEnum[]
@@ -27,5 +32,6 @@ export class FindManyValetArgs extends PartialType(FindManyValetArgsStrict) {}
 
 @ArgsType()
 export class FindUniqueValetArgs {
+  @Field(() => ValetWhereUniqueInput)
   where: ValetWhereUniqueInput
 }

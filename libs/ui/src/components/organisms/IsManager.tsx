@@ -14,7 +14,7 @@ export const IsManager = ({
 }: {
   children: RenderPropChild | ReactNode
 }) => {
-  const { data, loading } = useQuery(MyCompanyDocument)
+  const { data, loading } = useQuery(MyCompanyDocument, { fetchPolicy: 'cache-first' })
 
   if (loading) {
     return <LoaderPanel text="Loading company..." />

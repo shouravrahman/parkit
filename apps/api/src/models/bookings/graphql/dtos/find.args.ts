@@ -13,10 +13,15 @@ class FindManyBookingArgsStrict implements RestrictProperties<
   FindManyBookingArgsStrict,
   Omit<Prisma.BookingFindManyArgs, 'include' | 'select'>
 > {
+  @Field(() => BookingWhereInput, { nullable: true })
   where: BookingWhereInput
+  @Field(() => [BookingOrderByWithRelationInput], { nullable: true })
   orderBy: BookingOrderByWithRelationInput[]
+  @Field(() => BookingWhereUniqueInput, { nullable: true })
   cursor: BookingWhereUniqueInput
+  @Field({ nullable: true })
   take: number
+  @Field({ nullable: true })
   skip: number
   @Field(() => [Prisma.BookingScalarFieldEnum])
   distinct: Prisma.BookingScalarFieldEnum[]
@@ -29,5 +34,6 @@ export class FindManyBookingArgs extends PartialType(
 
 @ArgsType()
 export class FindUniqueBookingArgs {
+  @Field(() => BookingWhereUniqueInput)
   where: BookingWhereUniqueInput
 }

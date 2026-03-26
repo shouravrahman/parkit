@@ -38,6 +38,7 @@ export const ListGarageBookings = ({ garageId }: IListBookingsProps) => {
           statuses={[
             BookingStatus.CheckedIn,
             BookingStatus.ValetAssignedForCheckOut,
+            BookingStatus.CheckedOut,
           ]}
           showCheckOut
         />
@@ -45,7 +46,10 @@ export const ListGarageBookings = ({ garageId }: IListBookingsProps) => {
       <TabPanel value={value} index={2}>
         <ShowGarageBookings
           garageId={garageId}
-          statuses={[BookingStatus.CheckedOut]}
+          statuses={[
+            BookingStatus.CheckedOut,
+            BookingStatus.ValetReturned,
+          ]}
         />
       </TabPanel>
     </div>

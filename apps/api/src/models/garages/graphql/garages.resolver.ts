@@ -101,7 +101,11 @@ export class GaragesResolver {
 
     const { where = {}, ...garageFilters } = args || {}
 
-    return this.prisma.garage.findMany({
+    console.log('searchGarages bounds:', { ne_lat, ne_lng, sw_lat, sw_lng })
+    console.log('searchGarages dates:', { startDate: startDate.toISOString(), endDate: endDate.toISOString() })
+    console.log('searchGarages slotsFilter:', JSON.stringify(slotsFilter))
+
+    const results = await this.prisma.garage.findMany({
       ...garageFilters,
       where: {
         ...where,
@@ -111,25 +115,19 @@ export class GaragesResolver {
         },
         Slots: {
           some: {
-            ...slotsFilter,
+            ...(slotsFilter || {}),
             Bookings: {
               none: {
-                OR: [
-                  {
-                    startTime: { lt: endDate },
-                    endTime: { gt: startDate },
-                  },
-                  {
-                    startTime: { gt: startDate },
-                    endTime: { lt: endDate },
-                  },
-                ],
+                startTime: { lt: endDate },
+                endTime: { gt: startDate },
               },
             },
           },
         },
       },
     })
+    console.log("searchGarages results count:", results.length)
+    return results
   }
 
   @ResolveField(() => [SlotTypeCount])
@@ -167,20 +165,12 @@ export class GaragesResolver {
       _count: { type: true },
       _min: { pricePerHour: true },
       where: {
-        ...slotsFilter,
+        ...(slotsFilter || {}),
         garageId: { equals: garage.id },
         Bookings: {
           none: {
-            OR: [
-              {
-                startTime: { lt: endDate },
-                endTime: { gt: startDate },
-              },
-              {
-                startTime: { gt: startDate },
-                endTime: { lt: endDate },
-              },
-            ],
+            startTime: { lt: endDate },
+            endTime: { gt: startDate },
           },
         },
       },

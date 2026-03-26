@@ -32,6 +32,7 @@ export default function RootLayout({
             className={`${inter.className} bg-dark min-h-screen text-white`}
           >
             <Header menuItems={MENUITEMS} />
+            {/* Keep site content inside a centered Container to align header and page content. */}
             <Container>{children}</Container>
             <ToastContainer />
           </body>

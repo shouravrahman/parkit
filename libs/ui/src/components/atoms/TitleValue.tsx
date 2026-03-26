@@ -21,7 +21,7 @@ export const TitleStrongValue = ({
   children: ReactNode
 }) => (
   <div>
-    <div className="text-sm text-gray">{title}</div>
-    <div className="text-black">{children}</div>{' '}
+    <div className="text-xs text-gray-500">{title}</div>
+    <div className="text-white">{children}</div>{' '}
   </div>
 )

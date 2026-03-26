@@ -9,11 +9,13 @@ export const Directions = ({
   destination,
   setDistance,
   sourceId,
+  color = '#f59e0b',
 }: {
   origin?: LatLng
   destination?: Partial<LatLng>
   setDistance?: (distance?: number) => void
   sourceId: string
+  color?: string
 }) => {
   const [coordinates, setCoordinates] = useState<LngLatTuple[]>([])
   const prevDistanceRef = useRef<number | undefined>(undefined)
@@ -35,13 +37,21 @@ export const Directions = ({
       return
     }
 
+    // Skip if same point
+    if (
+      Math.abs((originDebounced.lat || 0) - (destinationDebounced.lat || 0)) < 0.0001 &&
+      Math.abs((originDebounced.lng || 0) - (destinationDebounced.lng || 0)) < 0.0001
+    ) {
+      return
+    }
+
     prevOriginRef.current = originDebounced
     prevDestinationRef.current = destinationDebounced
     ;(async () => {
       try {
         // OSRM — free, no API key
         const response = await fetch(
-          `https://router.project-osrm.org/route/v1/driving/${originDebounced.lng},${originDebounced.lat};${destinationDebounced.lng},${destinationDebounced.lat}?overview=simplified&geometries=geojson`,
+          `https://router.project-osrm.org/route/v1/driving/${originDebounced.lng},${originDebounced.lat};${destinationDebounced.lng},${destinationDebounced.lat}?overview=full&geometries=geojson`,
         )
         const data = await response.json()
         const coords: LngLatTuple[] =
@@ -58,7 +68,8 @@ export const Directions = ({
         console.error('Directions error:', e)
       }
     })()
-  }, [originDebounced, destinationDebounced, setDistance])
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [originDebounced, destinationDebounced])
 
   // coords from OSRM are [lng, lat], Leaflet needs [lat, lng]
   const positions = useMemo(
@@ -71,7 +82,7 @@ export const Directions = ({
   return (
     <Polyline
       positions={positions}
-      pathOptions={{ color: '#f59e0b', weight: 3 }}
+      pathOptions={{ color, weight: 4, opacity: 0.85 }}
     />
   )
 }

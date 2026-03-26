@@ -1,6 +1,6 @@
 import { SearchGaragesQueryVariables } from '@parkit/network/src/gql/generated'
 import { FormTypeSearchGarage } from '../searchGarages'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import {
   FieldNamesMarkedBoolean,
   useFormContext,
@@ -28,6 +28,7 @@ type FormData = Partial<
 export const useConvertSearchFormToVariables = () => {
   const [variables, setVariables] =
     useState<SearchGaragesQueryVariables | null>(null)
+  const prevVariablesRef = useRef<string | null>(null)
 
   const {
     formState: { dirtyFields, errors },
@@ -74,12 +75,17 @@ export const useConvertSearchFormToVariables = () => {
 
     const garagesFilter = createGaragesFilter(dirtyFields, { skip, take })
 
-    setVariables({
+    const nextVars = {
       dateFilter,
       locationFilter: { ne_lat, ne_lng, sw_lat, sw_lng },
       ...(Object.keys(slotsFilter).length && { slotsFilter }),
-      ...(Object.keys(garagesFilter).length && { garagesFilter }),
-    })
+      ...(Object.keys(garagesFilter).length && { garageFilter: garagesFilter }),
+    }
+    const serialized = JSON.stringify(nextVars)
+    if (serialized !== prevVariablesRef.current) {
+      prevVariablesRef.current = serialized
+      setVariables(nextVars)
+    }
   }, [debouncedFormData])
 
   return { variables: hasErrors ? null : variables, debouncing }

@@ -50,7 +50,7 @@ export const ValetTripCard = ({
             </div>
           </div>
           <div className="font-medium text-primary bg-primary/10 px-2 py-1 rounded-lg text-sm border border-primary/30">
-            {((distance || 0) / 1000).toFixed(2)} km
+            {loading ? "..." : distance ? `${(distance / 1000).toFixed(2)} km` : "—"}
           </div>
         </div>
         {children}

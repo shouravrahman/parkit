@@ -1,28 +1,30 @@
-import Image from 'next/image'
+'use client'
+import dynamic from 'next/dynamic'
+
+const StaticMapInner = dynamic(
+  () => import('./StaticMapInner').then((m) => m.StaticMapInner),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="w-full aspect-square bg-dark-200 animate-pulse rounded-lg" />
+    ),
+  },
+)
 
 export const StaticMapSimple = ({
   position,
-  className = 'w-full shadow-xl aspect-square',
+  className = 'w-full aspect-square',
 }: {
   position: { lng: number; lat: number }
   padding?: [number, number, number]
   className?: string
 }) => {
-  if (!position) {
-    return <div className="w-full bg-gray-800 shadow-xl aspect-square" />
+  if (!position?.lat || !position?.lng) {
+    return <div className="w-full aspect-square bg-dark-200 rounded-lg" />
   }
-
-  // Using staticmap.net — free OSM-based static map tiles
-  const url = `https://staticmap.openstreetmap.de/staticmap.php?center=${position.lat},${position.lng}&zoom=15&size=600x600&markers=${position.lat},${position.lng},red`
-
   return (
-    <Image
-      src={url}
-      alt="Map"
-      className={className}
-      width={600}
-      height={600}
-      unoptimized
-    />
+    <div className={className}>
+      <StaticMapInner lat={position.lat} lng={position.lng} />
+    </div>
   )
 }

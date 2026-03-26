@@ -1,3 +1,4 @@
+import { memo } from 'react'
 import { useLazyQuery } from '@apollo/client'
 import { SearchGaragesDocument } from '@parkit/network/src/gql/generated'
 import { useEffect } from 'react'
@@ -8,7 +9,7 @@ import { Loader } from '../../molecules/Loader'
 import { IconInfoCircle } from '@tabler/icons-react'
 import { toast } from '../../molecules/Toast'
 
-export const ShowGarages = () => {
+const ShowGaragesInner = () => {
   const { variables, debouncing } = useConvertSearchFormToVariables()
 
   const [
@@ -63,3 +64,5 @@ export const ShowGarages = () => {
     </>
   )
 }
+
+export const ShowGarages = memo(ShowGaragesInner)

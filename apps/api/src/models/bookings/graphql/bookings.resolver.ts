@@ -22,6 +22,7 @@ import { AggregateCountOutput } from 'src/common/dtos/common.input'
 import { BookingWhereInput } from './dtos/where.args'
 import { BookingTimeline } from 'src/models/booking-timelines/graphql/entity/booking-timeline.entity'
 import { BadRequestException } from '@nestjs/common'
+import { BookingStatus } from '@prisma/client'
 
 @Resolver(() => Booking)
 export class BookingsResolver {
@@ -151,6 +152,41 @@ export class BookingsResolver {
     return this.bookingsService.remove(args)
   }
 
+
+  @AllowAuthenticated('manager', 'admin')
+  @Mutation(() => Booking)
+  async updateBookingStatus(
+    @Args('bookingId') bookingId: number,
+    @Args('status') status: string,
+    @GetUser() user: GetUserType,
+  ) {
+    const booking = await this.prisma.booking.findUnique({
+      where: { id: bookingId },
+      include: {
+        Slot: {
+          include: {
+            Garage: { include: { Company: { include: { Managers: true } } } },
+          },
+        },
+      },
+    })
+
+    checkRowLevelPermission(user, [
+      ...booking.Slot.Garage.Company.Managers.map((m) => m.uid),
+    ])
+
+    const bookingStatus = status as BookingStatus
+    return this.prisma.$transaction(async (tx) => {
+      const updated = await tx.booking.update({
+        where: { id: bookingId },
+        data: { status: bookingStatus },
+      })
+      await tx.bookingTimeline.create({
+        data: { bookingId, managerId: user.uid, status: bookingStatus },
+      })
+      return updated
+    })
+  }
   @ResolveField(() => Slot)
   slot(@Parent() booking: Booking) {
     return this.prisma.slot.findFirst({ where: { id: booking.slotId } })

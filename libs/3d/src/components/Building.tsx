@@ -1,4 +1,4 @@
-import { FLOOR_HEIGHT } from '../util/constants'
+import { FLOOR_HEIGHT, yellowColor } from '../util/constants'
 import { Square, SquareProps } from './Square'
 
 interface BuildingProps extends SquareProps {
@@ -17,7 +17,7 @@ export const Building = ({ position, size, floors = 3 }: BuildingProps) => {
             position[2],
           ]}
           size={size}
-          borderColor="white"
+          borderColor={yellowColor}
         />
       ))}
     </>

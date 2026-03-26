@@ -186,6 +186,7 @@ export class ValetsResolver {
       skip,
       take,
       where: {
+        status: BookingStatus.CHECKED_OUT,
         Slot: { Garage: { companyId: valet.companyId } },
         ValetAssignment: {
           returnLat: { not: null },
@@ -202,6 +203,7 @@ export class ValetsResolver {
 
     return this.prisma.booking.count({
       where: {
+        status: BookingStatus.CHECKED_OUT,
         Slot: { Garage: { companyId: valet.companyId } },
         ValetAssignment: {
           returnLat: { not: null },

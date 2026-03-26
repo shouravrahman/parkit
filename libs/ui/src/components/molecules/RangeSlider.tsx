@@ -1,17 +1,17 @@
 import Slider, { SliderProps } from '@mui/material/Slider'
 
 export const RangeSlider = (props: SliderProps) => (
-  <div className="w-full pt-6 pl-2 pr-4">
+  <div className="w-full pt-7 pl-2 pr-4">
     <Slider
       valueLabelDisplay="on"
       classes={{
-        root: `h-0.5 w-full border-0 `,
+        root: 'h-px w-full border-0',
         thumb:
-          'rounded-none border w-4 h-4 after:active:bg-black/10 after:w-8 after:h-8 after:rounded-none bg-white hover:shadow-none hover:border-black hover:bg-gray-50 focus:bg-gray-50',
-        track: 'text-gray-800 ',
-        rail: 'bg-gray-400',
+          'w-3.5 h-3.5 rounded-sm border border-primary/60 bg-primary shadow-none hover:shadow-none hover:bg-primary-400 after:w-8 after:h-8',
+        track: 'text-primary',
+        rail: 'bg-dark-400',
         valueLabel:
-          'text-black rounded-none py-1 px-0.5 text-sm bg-white/20 h-0 w-0',
+          'text-xs text-primary-900 bg-primary rounded py-0.5 px-1.5 font-medium',
       }}
       {...props}
     />

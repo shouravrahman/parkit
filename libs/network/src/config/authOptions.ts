@@ -144,7 +144,7 @@ export const authOptions: NextAuthOptions = {
           },
         })
 
-        if (!existingUser.data?.getAuthProvider?.uid) {
+        if (!existingUser.data?.getAuthProvider) {
           const newUser = await fetchGraphQL({
             document: RegisterWithProviderDocument,
             variables: {

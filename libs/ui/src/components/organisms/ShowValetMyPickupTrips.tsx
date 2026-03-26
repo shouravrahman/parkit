@@ -71,8 +71,14 @@ export const ShowValetMyPickupTrips = ({ uid }: { uid: string }) => {
               />
             </div>
 
-            <div className="text-sm">
-              {booking.status?.split('_').join(' ')}
+            <div className="flex items-center gap-2">
+              <span className={`text-xs font-semibold px-2 py-0.5 rounded-full border ${
+                booking.status === BookingStatus.ValetPickedUp
+                  ? 'bg-blue-500/15 text-blue-400 border-blue-500/30'
+                  : 'bg-primary/15 text-primary border-primary/30'
+              }`}>
+                {booking.status?.split('_').join(' ')}
+              </span>
             </div>
 
             {booking.status === BookingStatus.ValetAssignedForCheckIn ? (
@@ -80,8 +86,13 @@ export const ShowValetMyPickupTrips = ({ uid }: { uid: string }) => {
                 bookingId={booking.id}
                 status={BookingStatus.ValetPickedUp}
               >
-                Pickup
+                Picked Up — On the way to garage
               </AssignValetButton>
+            ) : null}
+            {booking.status === BookingStatus.ValetPickedUp ? (
+              <p className="text-xs text-gray-500">
+                Waiting for manager to check in at garage
+              </p>
             ) : null}
           </div>
         </ValetTripCard>

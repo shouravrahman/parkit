@@ -14,7 +14,7 @@ export const IsValet = ({
   children: RenderPropChild | ReactNode
   uid: string
 }) => {
-  const { data, loading } = useQuery(ValetMeDocument)
+  const { data, loading } = useQuery(ValetMeDocument, { fetchPolicy: 'cache-first' })
 
   if (loading) {
     return <LoaderPanel text="Loading company..." />

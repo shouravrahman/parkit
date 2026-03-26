@@ -1,51 +1,117 @@
-import { BookingsForGarageQuery } from '@parkit/network/src/gql/generated'
+'use client'
+import {
+  BookingsForGarageQuery,
+  UpdateBookingStatusDocument,
+  namedOperations,
+} from '@parkit/network/src/gql/generated'
 import { TitleStrongValue, TitleValue } from '../atoms/TitleValue'
 import { Reveal } from '../molecules/Reveal'
 import { StartEndDateCard } from './DateCard'
 import { Accordion } from '../atoms/Accordion'
+import { Button } from '../atoms/Button'
 import { format } from 'date-fns'
+import { useMutation } from '@apollo/client'
 
 export interface IManageBookingCardProps {
   booking: BookingsForGarageQuery['bookingsForGarage'][0]
 }
 
+// Status machine: what transition is available from each status
+const nextStatus: Record<string, { label: string; status: string } | null> = {
+  BOOKED: { label: 'Check In', status: 'CHECKED_IN' },
+  CHECKED_IN: { label: 'Check Out', status: 'CHECKED_OUT' },
+  VALET_PICKED_UP: { label: 'Check In', status: 'CHECKED_IN' },
+  VALET_RETURNED: null,
+  CHECKED_OUT: null,
+  VALET_ASSIGNED_FOR_CHECK_IN: null,
+  VALET_ASSIGNED_FOR_CHECK_OUT: null,
+}
+
+const statusColor: Record<string, string> = {
+  BOOKED: 'text-primary',
+  CHECKED_IN: 'text-green-400',
+  CHECKED_OUT: 'text-gray-400',
+  VALET_ASSIGNED_FOR_CHECK_IN: 'text-blue-400',
+  VALET_PICKED_UP: 'text-blue-400',
+  VALET_ASSIGNED_FOR_CHECK_OUT: 'text-purple-400',
+  VALET_RETURNED: 'text-green-400',
+}
+
 export const ManageBookingCard = ({ booking }: IManageBookingCardProps) => {
+  const [updateStatus, { loading }] = useMutation(UpdateBookingStatusDocument, {
+    refetchQueries: [namedOperations.Query.BookingsForGarage],
+  })
+
+  const transition = nextStatus[booking.status] ?? null
+
   return (
     <div className="p-4 space-y-3 bg-dark-100 border border-white/10 rounded-xl hover:border-primary/30 transition-colors duration-300">
-      <div className="flex items-start justify-between">
-        <TitleStrongValue title={'Vehicle number'}>
-          <div className="text-3xl font-bold text-white">
+      {/* Header */}
+      <div className="flex items-start justify-between gap-2">
+        <TitleStrongValue title="Vehicle number">
+          <div className="text-2xl font-bold text-white">
             {booking.vehicleNumber}
           </div>
         </TitleStrongValue>
-        <div className="px-2 py-1 border border-primary/50 rounded-lg bg-primary/10 text-primary text-xs">
-          <TitleValue title={'Slot'}>{booking.slot.displayName}</TitleValue>
+        <div className="px-2 py-1 border border-primary/50 rounded-lg bg-primary/10 text-primary text-xs shrink-0">
+          <TitleValue title="Slot">{booking.slot.displayName}</TitleValue>
         </div>
       </div>
+
       <StartEndDateCard
         startTime={booking.startTime}
         endTime={booking.endTime}
       />
-      <TitleStrongValue title={'Code'}>
+
+      <TitleStrongValue title="Code">
         <Reveal showIntruction={false} secret={booking.passcode || ''} />
       </TitleStrongValue>
 
+      {/* Status + action */}
+      <div className="flex items-center justify-between gap-2 pt-1 border-t border-white/5">
+        <div>
+          <p className="text-xs text-gray-500">Status</p>
+          <p
+            className={`text-sm font-semibold ${statusColor[booking.status] ?? 'text-white'}`}
+          >
+            {booking.status.split('_').join(' ')}
+          </p>
+        </div>
+        {transition && (
+          <Button
+            size="sm"
+            loading={loading}
+            onClick={() =>
+              updateStatus({
+                variables: {
+                  bookingId: booking.id,
+                  status: transition.status,
+                },
+              })
+            }
+          >
+            {transition.label}
+          </Button>
+        )}
+      </div>
+
+      {/* Timeline */}
       <Accordion
         defaultOpen={false}
-        title={
-          <TitleStrongValue title={'Status'}>
-            <div className="font-bold">
-              {booking.status.split('_').join(' ')}
-            </div>
-          </TitleStrongValue>
-        }
+        title={<span className="text-xs text-gray-500">View timeline</span>}
       >
-        <div className="flex flex-col gap-2">
-          {booking.bookingTimeline.map((timeline) => (
-            <div key={timeline.timestamp}>
-              <TitleValue title={timeline.status}>
+        <div className="flex flex-col gap-2 mt-2">
+          {booking.bookingTimeline.map((timeline: { status: string; timestamp: string }) => (
+            <div
+              key={timeline.timestamp}
+              className="flex justify-between text-xs"
+            >
+              <span className="text-gray-400">
+                {timeline.status.split('_').join(' ')}
+              </span>
+              <span className="text-gray-600">
                 {format(new Date(timeline.timestamp), 'PPp')}
-              </TitleValue>
+              </span>
             </div>
           ))}
         </div>

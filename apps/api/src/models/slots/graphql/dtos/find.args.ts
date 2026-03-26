@@ -13,10 +13,15 @@ class FindManySlotArgsStrict implements RestrictProperties<
   FindManySlotArgsStrict,
   Omit<Prisma.SlotFindManyArgs, 'include' | 'select'>
 > {
+  @Field(() => SlotWhereInput, { nullable: true })
   where: SlotWhereInput
+  @Field(() => [SlotOrderByWithRelationInput], { nullable: true })
   orderBy: SlotOrderByWithRelationInput[]
+  @Field(() => SlotWhereUniqueInput, { nullable: true })
   cursor: SlotWhereUniqueInput
+  @Field({ nullable: true })
   take: number
+  @Field({ nullable: true })
   skip: number
   @Field(() => [Prisma.SlotScalarFieldEnum])
   distinct: Prisma.SlotScalarFieldEnum[]
@@ -27,5 +32,6 @@ export class FindManySlotArgs extends PartialType(FindManySlotArgsStrict) {}
 
 @ArgsType()
 export class FindUniqueSlotArgs {
+  @Field(() => SlotWhereUniqueInput)
   where: SlotWhereUniqueInput
 }

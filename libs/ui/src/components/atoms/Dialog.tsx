@@ -27,7 +27,7 @@ export const Dialog = ({
     <Transition appear show={open} as={Fragment}>
       <HDialog
         as="div"
-        className="relative z-50"
+        className="relative z-[1000]"
         onClose={() => setOpen(false)}
       >
         {/* Backdrop */}

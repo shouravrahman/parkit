@@ -21,8 +21,8 @@ export const Reveal = ({
       <span
         className={`text-lg tracking-wider w-full border px-1 ${
           revealed
-            ? 'bg-white   shadow-sm '
-            : 'bg-checker border-white  text-transparent'
+            ? 'bg-dark-200 text-white border-white/20 shadow-sm'
+            : 'bg-checker border-white/20 text-transparent'
         }`}
       >
         {secret}

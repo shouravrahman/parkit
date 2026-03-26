@@ -1,7 +1,7 @@
 import { CanvasTexture, Euler, Vector3 } from 'three'
 import { radians } from '../util'
 import { useMemo } from 'react'
-import { roadColor } from '../util/constants'
+import { roadColor, dark100 } from '../util/constants'
 
 export const GradientPlane = ({
   position,
@@ -22,9 +22,10 @@ export const GradientPlane = ({
       throw new Error('Failed to get canvas 2D context')
     }
 
-    const gradient = ctx.createLinearGradient(0, 0, 256, 0)
-    gradient.addColorStop(0, 'gray')
-    gradient.addColorStop(1, roadColor)
+  const gradient = ctx.createLinearGradient(0, 0, 256, 0)
+  // start with a dark navy tone and blend into the road color
+  gradient.addColorStop(0, dark100)
+  gradient.addColorStop(1, roadColor)
     ctx.fillStyle = gradient
     ctx.fillRect(0, 0, 256, 256)
     return new CanvasTexture(canvas)

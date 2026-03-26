@@ -1,5 +1,5 @@
 import { LatLng } from '../types'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 export const useMapboxDirections = (
   start?: Partial<LatLng> | null,
@@ -10,47 +10,62 @@ export const useMapboxDirections = (
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
+  // Use stable primitive deps to avoid infinite refetch from object reference changes
+  const startLat = start?.lat
+  const startLng = start?.lng
+  const endLat = end?.lat
+  const endLng = end?.lng
+
   useEffect(() => {
-    if (!start || !end || !start.lng || !start.lat || !end.lng || !end.lat) {
+    if (!startLat || !startLng || !endLat || !endLng) {
       setData([])
       setDistance(null)
       return
     }
 
-    setLoading(true)
-    const fetchData = async () => {
-      try {
-        // Using OSRM (Open Source Routing Machine) - free, no API key needed
-        const response = await fetch(
-          `https://router.project-osrm.org/route/v1/driving/${start.lng},${start.lat};${end.lng},${end.lat}?steps=true&geometries=geojson`,
-        )
-        const data = await response.json()
+    // Skip if same point
+    if (
+      Math.abs(startLat - endLat) < 0.0001 &&
+      Math.abs(startLng - endLng) < 0.0001
+    ) {
+      return
+    }
 
-        if (!data.routes || data.routes.length === 0) {
+    let cancelled = false
+    setLoading(true)
+
+    fetch(
+      `https://router.project-osrm.org/route/v1/driving/${startLng},${startLat};${endLng},${endLat}?overview=full&geometries=geojson`,
+    )
+      .then((r) => r.json())
+      .then((json) => {
+        if (cancelled) return
+        if (!json.routes?.length) {
           setError('No route found')
           setData([])
           setDistance(null)
           return
         }
+        // OSRM returns [lng, lat] — keep as-is, DirectionsMapInner converts
+        const coords: [number, number][] =
+          json.routes[0].geometry?.coordinates || []
+        setData(coords)
+        setDistance(json.routes[0].distance ?? null)
+        setError(null)
+      })
+      .catch((err) => {
+        if (cancelled) return
+        console.error('Directions error:', err)
+        setError(err.message)
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false)
+      })
 
-        // Extract coordinates from GeoJSON geometry
-        const coordinates =
-          data.routes[0].geometry?.coordinates?.map(
-            (coord: [number, number]) => [coord[1], coord[0]], // Convert [lng,lat] to [lat,lng]
-          ) || []
-
-        setData(coordinates)
-        setDistance(data.routes[0].distance) // Distance in meters
-      } catch (error: any) {
-        console.error('Directions error:', error)
-        setError(error.message)
-      } finally {
-        setLoading(false)
-      }
+    return () => {
+      cancelled = true
     }
-
-    fetchData()
-  }, [start, end])
+  }, [startLat, startLng, endLat, endLng])
 
   return { data, distance, loading, error }
 }

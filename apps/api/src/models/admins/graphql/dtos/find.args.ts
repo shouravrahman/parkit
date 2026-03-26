@@ -32,5 +32,6 @@ export class FindManyAdminArgs extends PartialType(FindManyAdminArgsStrict) {}
 
 @ArgsType()
 export class FindUniqueAdminArgs {
+  @Field(() => AdminWhereUniqueInput)
   where: AdminWhereUniqueInput
 }

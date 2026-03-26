@@ -31,6 +31,7 @@ export const useSearchLocation = () => {
         const filtered = data?.map((x: any) => ({
           placeName: x.display_name,
           latLng: [parseFloat(x.lat), parseFloat(x.lon)],
+          boundingbox: x.boundingbox,
         }))
 
         setLocationInfo(filtered || [])

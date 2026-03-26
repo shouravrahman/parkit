@@ -1,3 +1,9 @@
+import { Container } from '@parkit/ui/src/components/atoms/Container'
+
 export default function Page() {
-  return <div>Booking failed.</div>
+  return (
+    <Container>
+      <div>Booking failed.</div>
+    </Container>
+  )
 }

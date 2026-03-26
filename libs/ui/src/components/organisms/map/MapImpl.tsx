@@ -51,6 +51,7 @@ export const MapImpl = ({
         <TileLayer
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+          crossOrigin="anonymous"
         />
         <OnLoadHandler onLoad={onLoad} />
         {children}

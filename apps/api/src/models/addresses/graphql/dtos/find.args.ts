@@ -13,10 +13,15 @@ class FindManyAddressArgsStrict implements RestrictProperties<
   FindManyAddressArgsStrict,
   Omit<Prisma.AddressFindManyArgs, 'include' | 'select'>
 > {
+  @Field(() => AddressWhereInput, { nullable: true })
   where: AddressWhereInput
+  @Field(() => [AddressOrderByWithRelationInput], { nullable: true })
   orderBy: AddressOrderByWithRelationInput[]
+  @Field(() => AddressWhereUniqueInput, { nullable: true })
   cursor: AddressWhereUniqueInput
+  @Field({ nullable: true })
   take: number
+  @Field({ nullable: true })
   skip: number
   @Field(() => [Prisma.AddressScalarFieldEnum])
   distinct: Prisma.AddressScalarFieldEnum[]
@@ -29,5 +34,6 @@ export class FindManyAddressArgs extends PartialType(
 
 @ArgsType()
 export class FindUniqueAddressArgs {
+  @Field(() => AddressWhereUniqueInput)
   where: AddressWhereUniqueInput
 }

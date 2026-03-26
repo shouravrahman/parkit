@@ -8,7 +8,11 @@ export const ToggleButtonGroup = forwardRef<
   JSX.Element,
   ToggleButtonGroupProps
 >((props, ref) => (
-  <ToggleButtonGroupMui classes={{ root: 'block mt-2' }} ref={ref} {...props} />
+  <ToggleButtonGroupMui
+    classes={{ root: 'flex flex-wrap gap-1.5 mt-1.5' }}
+    ref={ref}
+    {...props}
+  />
 ))
 
 ToggleButtonGroup.displayName = 'ToggleButtonGroup'
@@ -16,9 +20,9 @@ ToggleButtonGroup.displayName = 'ToggleButtonGroup'
 export const ToggleButton = (props: ToggleButtonProps) => (
   <ToggleButtonMui
     classes={{
-      root: 'rounded-none transition-all',
-      selected: 'border border-black bg-white shadow-lg',
-      //   standard: 'bg-gray-50 ',
+      root: 'w-10 h-10 rounded-lg border border-white/10 bg-dark-200 text-gray-400 transition-all hover:border-primary/40 hover:text-primary hover:bg-primary/10',
+      selected:
+        'border-primary/60 bg-primary/15 text-primary shadow-none',
     }}
     disableRipple
     disableTouchRipple

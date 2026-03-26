@@ -13,10 +13,15 @@ class FindManyCustomerArgsStrict implements RestrictProperties<
   FindManyCustomerArgsStrict,
   Omit<Prisma.CustomerFindManyArgs, 'include' | 'select'>
 > {
+  @Field(() => CustomerWhereInput, { nullable: true })
   where: CustomerWhereInput
+  @Field(() => [CustomerOrderByWithRelationInput], { nullable: true })
   orderBy: CustomerOrderByWithRelationInput[]
+  @Field(() => CustomerWhereUniqueInput, { nullable: true })
   cursor: CustomerWhereUniqueInput
+  @Field({ nullable: true })
   take: number
+  @Field({ nullable: true })
   skip: number
   @Field(() => [Prisma.CustomerScalarFieldEnum])
   distinct: Prisma.CustomerScalarFieldEnum[]
@@ -29,5 +34,6 @@ export class FindManyCustomerArgs extends PartialType(
 
 @ArgsType()
 export class FindUniqueCustomerArgs {
+  @Field(() => CustomerWhereUniqueInput)
   where: CustomerWhereUniqueInput
 }

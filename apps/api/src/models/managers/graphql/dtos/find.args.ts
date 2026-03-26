@@ -13,10 +13,15 @@ class FindManyManagerArgsStrict implements RestrictProperties<
   FindManyManagerArgsStrict,
   Omit<Prisma.ManagerFindManyArgs, 'include' | 'select'>
 > {
+  @Field(() => ManagerWhereInput, { nullable: true })
   where: ManagerWhereInput
+  @Field(() => [ManagerOrderByWithRelationInput], { nullable: true })
   orderBy: ManagerOrderByWithRelationInput[]
+  @Field(() => ManagerWhereUniqueInput, { nullable: true })
   cursor: ManagerWhereUniqueInput
+  @Field({ nullable: true })
   take: number
+  @Field({ nullable: true })
   skip: number
   @Field(() => [Prisma.ManagerScalarFieldEnum])
   distinct: Prisma.ManagerScalarFieldEnum[]
@@ -29,5 +34,6 @@ export class FindManyManagerArgs extends PartialType(
 
 @ArgsType()
 export class FindUniqueManagerArgs {
+  @Field(() => ManagerWhereUniqueInput)
   where: ManagerWhereUniqueInput
 }

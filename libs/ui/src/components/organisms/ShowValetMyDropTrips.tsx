@@ -71,13 +71,19 @@ export const ShowValetMyDropTrips = ({ uid }: { uid: string }) => {
               />
             </div>
 
-            <div className="text-sm">
-              {booking.status?.split('_').join(' ')}
+            <div className="flex items-center gap-2">
+              <span className={`text-xs font-semibold px-2 py-0.5 rounded-full border ${
+                booking.status === BookingStatus.ValetAssignedForCheckOut
+                  ? 'bg-blue-500/15 text-blue-400 border-blue-500/30'
+                  : 'bg-primary/15 text-primary border-primary/30'
+              }`}>
+                {booking.status?.split('_').join(' ')}
+              </span>
             </div>
 
             {[
-              BookingStatus.ValetAssignedForCheckIn,
               BookingStatus.CheckedOut,
+              BookingStatus.ValetAssignedForCheckOut,
             ].includes(booking.status) ? (
               <AssignValetButton
                 bookingId={booking.id}

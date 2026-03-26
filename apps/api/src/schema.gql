@@ -28,6 +28,10 @@ enum AuthProviderType {
   CREDENTIALS
 }
 
+type AggregateCountOutput {
+  count: Int!
+}
+
 type LoginOutput {
   token: String!
   user: User!
@@ -68,10 +72,6 @@ type Customer {
   displayName: String
   user: User
   bookings: [Booking!]!
-}
-
-type AggregateCountOutput {
-  count: Int!
 }
 
 type Verification {
@@ -589,51 +589,67 @@ type Review {
 
 type Query {
   whoami: User!
-  users(distinct: [UserScalarFieldEnum!]): [User!]!
-  user: User!
+  users(where: UserWhereInput, orderBy: [UserOrderByWithRelationInput!], cursor: UserWhereUniqueInput, take: Float, skip: Float, distinct: [UserScalarFieldEnum!]): [User!]!
+  user(where: UserWhereUniqueInput!): User!
   getAuthProvider(uid: String!): AuthProvider
   admins(where: AdminWhereInput, orderBy: [AdminOrderByWithRelationInput!], cursor: AdminWhereUniqueInput, take: Float, skip: Float, distinct: [AdminScalarFieldEnum!]): [Admin!]!
-  admin: Admin!
+  admin(where: AdminWhereUniqueInput!): Admin!
   adminMe: Admin!
   adminsCount(where: AdminWhereInput): Float!
-  customers(distinct: [CustomerScalarFieldEnum!]): [Customer!]!
-  customer: Customer!
-  managers(distinct: [ManagerScalarFieldEnum!]): [Manager!]!
-  manager: Manager!
-  valets(distinct: [ValetScalarFieldEnum!]): [Valet!]!
-  companyValets(distinct: [ValetScalarFieldEnum!]): [Valet!]!
+  customers(where: CustomerWhereInput, orderBy: [CustomerOrderByWithRelationInput!], cursor: CustomerWhereUniqueInput, take: Float, skip: Float, distinct: [CustomerScalarFieldEnum!]): [Customer!]!
+  customer(where: CustomerWhereUniqueInput!): Customer!
+  managers(where: ManagerWhereInput, orderBy: [ManagerOrderByWithRelationInput!], cursor: ManagerWhereUniqueInput, take: Float, skip: Float, distinct: [ManagerScalarFieldEnum!]): [Manager!]!
+  manager(where: ManagerWhereUniqueInput!): Manager!
+  valets(where: ValetWhereInput, orderBy: [ValetOrderByWithRelationInput!], cursor: ValetWhereUniqueInput, take: Float, skip: Float, distinct: [ValetScalarFieldEnum!]): [Valet!]!
+  companyValets(where: ValetWhereInput, orderBy: [ValetOrderByWithRelationInput!], cursor: ValetWhereUniqueInput, take: Float, skip: Float, distinct: [ValetScalarFieldEnum!]): [Valet!]!
   companyValetsTotal(where: ValetWhereInput): Float!
-  valet: Valet!
+  valet(where: ValetWhereUniqueInput!): Valet!
   valetMe: Valet
   valetPickups(take: Int, skip: Int): [Booking!]!
   valetPickupsTotal: Float!
   valetDrops(take: Int, skip: Int): [Booking!]!
   valetDropsTotal: Float!
-  companies(distinct: [CompanyScalarFieldEnum!]): [Company!]!
+  companies(where: CompanyWhereInput, orderBy: [CompanyOrderByWithRelationInput!], cursor: CompanyWhereUniqueInput, take: Float, skip: Float, distinct: [CompanyScalarFieldEnum!]): [Company!]!
   myCompany: Company!
-  company: Company!
+  company(where: CompanyWhereUniqueInput!): Company!
   garages(where: GarageWhereInput, orderBy: [GarageOrderByWithRelationInput!], cursor: GarageWhereUniqueInput, take: Float, skip: Float, distinct: [GarageScalarFieldEnum!]): [Garage!]!
-  garage: Garage!
+  garage(where: GarageWhereUniqueInput!): Garage!
   searchGarages(dateFilter: DateFilterInput!, locationFilter: LocationFilterInput!, slotsFilter: SlotWhereInput, garageFilter: GarageFilter): [Garage!]!
   garagesCount(where: GarageWhereInput): AggregateCountOutput!
-  addresses(distinct: [AddressScalarFieldEnum!]): [Address!]!
-  address: Address!
-  slots(distinct: [SlotScalarFieldEnum!]): [Slot!]!
-  slot: Slot!
-  bookings(distinct: [BookingScalarFieldEnum!]): [Booking!]!
-  bookingsForValet(distinct: [BookingScalarFieldEnum!]): [Booking!]!
-  bookingsForCustomer(distinct: [BookingScalarFieldEnum!]): [Booking!]!
-  bookingsForGarage(distinct: [BookingScalarFieldEnum!]): [Booking!]!
+  addresses(where: AddressWhereInput, orderBy: [AddressOrderByWithRelationInput!], cursor: AddressWhereUniqueInput, take: Float, skip: Float, distinct: [AddressScalarFieldEnum!]): [Address!]!
+  address(where: AddressWhereUniqueInput!): Address!
+  slots(where: SlotWhereInput, orderBy: [SlotOrderByWithRelationInput!], cursor: SlotWhereUniqueInput, take: Float, skip: Float, distinct: [SlotScalarFieldEnum!]): [Slot!]!
+  slot(where: SlotWhereUniqueInput!): Slot!
+  bookings(where: BookingWhereInput, orderBy: [BookingOrderByWithRelationInput!], cursor: BookingWhereUniqueInput, take: Float, skip: Float, distinct: [BookingScalarFieldEnum!]): [Booking!]!
+  bookingsForValet(where: BookingWhereInput, orderBy: [BookingOrderByWithRelationInput!], cursor: BookingWhereUniqueInput, take: Float, skip: Float, distinct: [BookingScalarFieldEnum!]): [Booking!]!
+  bookingsForCustomer(where: BookingWhereInput, orderBy: [BookingOrderByWithRelationInput!], cursor: BookingWhereUniqueInput, take: Float, skip: Float, distinct: [BookingScalarFieldEnum!]): [Booking!]!
+  bookingsForGarage(where: BookingWhereInput, orderBy: [BookingOrderByWithRelationInput!], cursor: BookingWhereUniqueInput, take: Float, skip: Float, distinct: [BookingScalarFieldEnum!]): [Booking!]!
   bookingsCount(where: BookingWhereInput): AggregateCountOutput!
-  booking: Booking!
-  valetAssignments(distinct: [ValetAssignmentScalarFieldEnum!]): [ValetAssignment!]!
-  valetAssignment: ValetAssignment!
-  bookingTimelines(distinct: [BookingTimelineScalarFieldEnum!]): [BookingTimeline!]!
-  bookingTimeline: BookingTimeline!
-  reviews(distinct: [ReviewScalarFieldEnum!]): [Review!]!
-  review: Review!
-  verifications(distinct: [VerificationScalarFieldEnum!]): [Verification!]!
-  verification: Verification!
+  booking(where: BookingWhereUniqueInput!): Booking!
+  valetAssignments(where: ValetAssignmentWhereInput, orderBy: [ValetAssignmentOrderByWithRelationInput!], cursor: ValetAssignmentWhereUniqueInput, take: Float, skip: Float, distinct: [ValetAssignmentScalarFieldEnum!]): [ValetAssignment!]!
+  valetAssignment(where: ValetAssignmentWhereUniqueInput!): ValetAssignment!
+  bookingTimelines(where: BookingTimelineWhereInput, orderBy: [BookingTimelineOrderByWithRelationInput!], cursor: BookingTimelineWhereUniqueInput, take: Float, skip: Float, distinct: [BookingTimelineScalarFieldEnum!]): [BookingTimeline!]!
+  bookingTimeline(where: BookingTimelineWhereUniqueInput!): BookingTimeline!
+  reviews(where: ReviewWhereInput, orderBy: [ReviewOrderByWithRelationInput!], cursor: ReviewWhereUniqueInput, take: Float, skip: Float, distinct: [ReviewScalarFieldEnum!]): [Review!]!
+  review(where: ReviewWhereUniqueInput!): Review!
+  verifications(where: VerificationWhereInput, orderBy: [VerificationOrderByWithRelationInput!], cursor: VerificationWhereUniqueInput, take: Float, skip: Float, distinct: [VerificationScalarFieldEnum!]): [Verification!]!
+  verification(where: VerificationWhereUniqueInput!): Verification!
+}
+
+input UserOrderByWithRelationInput {
+  uid: SortOrder
+  createdAt: SortOrder
+  updatedAt: SortOrder
+  name: SortOrder
+}
+
+enum SortOrder {
+  asc
+  desc
+}
+
+input UserWhereUniqueInput {
+  uid: String
 }
 
 enum UserScalarFieldEnum {
@@ -656,18 +672,6 @@ input VerificationOrderByRelationAggregateInput {
   _count: SortOrder!
 }
 
-enum SortOrder {
-  asc
-  desc
-}
-
-input UserOrderByWithRelationInput {
-  uid: SortOrder
-  createdAt: SortOrder
-  updatedAt: SortOrder
-  name: SortOrder
-}
-
 input AdminWhereUniqueInput {
   uid: String!
 }
@@ -678,11 +682,34 @@ enum AdminScalarFieldEnum {
   updatedAt
 }
 
+input CustomerOrderByWithRelationInput {
+  uid: SortOrder
+  createdAt: SortOrder
+  updatedAt: SortOrder
+  displayName: SortOrder
+}
+
+input CustomerWhereUniqueInput {
+  uid: String
+}
+
 enum CustomerScalarFieldEnum {
   uid
   createdAt
   updatedAt
   displayName
+}
+
+input ManagerOrderByWithRelationInput {
+  uid: SortOrder
+  createdAt: SortOrder
+  updatedAt: SortOrder
+  displayName: SortOrder
+  companyId: SortOrder
+}
+
+input ManagerWhereUniqueInput {
+  uid: String
 }
 
 enum ManagerScalarFieldEnum {
@@ -693,6 +720,20 @@ enum ManagerScalarFieldEnum {
   companyId
 }
 
+input ValetOrderByWithRelationInput {
+  uid: SortOrder
+  createdAt: SortOrder
+  updatedAt: SortOrder
+  displayName: SortOrder
+  image: SortOrder
+  licenceID: SortOrder
+  companyId: SortOrder
+}
+
+input ValetWhereUniqueInput {
+  uid: String!
+}
+
 enum ValetScalarFieldEnum {
   uid
   createdAt
@@ -701,6 +742,18 @@ enum ValetScalarFieldEnum {
   image
   licenceID
   companyId
+}
+
+input CompanyOrderByWithRelationInput {
+  id: SortOrder
+  createdAt: SortOrder
+  updatedAt: SortOrder
+  displayName: SortOrder
+  description: SortOrder
+}
+
+input CompanyWhereUniqueInput {
+  id: Float
 }
 
 enum CompanyScalarFieldEnum {
@@ -749,6 +802,20 @@ input GarageFilter {
   skip: Float
 }
 
+input AddressOrderByWithRelationInput {
+  id: SortOrder
+  createdAt: SortOrder
+  updatedAt: SortOrder
+  address: SortOrder
+  lat: SortOrder
+  lng: SortOrder
+  garageId: SortOrder
+}
+
+input AddressWhereUniqueInput {
+  id: Float
+}
+
 enum AddressScalarFieldEnum {
   id
   createdAt
@@ -757,6 +824,23 @@ enum AddressScalarFieldEnum {
   lat
   lng
   garageId
+}
+
+input SlotOrderByWithRelationInput {
+  id: SortOrder
+  createdAt: SortOrder
+  updatedAt: SortOrder
+  displayName: SortOrder
+  pricePerHour: SortOrder
+  length: SortOrder
+  width: SortOrder
+  height: SortOrder
+  type: SortOrder
+  garageId: SortOrder
+}
+
+input SlotWhereUniqueInput {
+  id: Int!
 }
 
 enum SlotScalarFieldEnum {
@@ -770,6 +854,26 @@ enum SlotScalarFieldEnum {
   height
   type
   garageId
+}
+
+input BookingOrderByWithRelationInput {
+  id: SortOrder
+  createdAt: SortOrder
+  updatedAt: SortOrder
+  pricePerHour: SortOrder
+  totalPrice: SortOrder
+  startTime: SortOrder
+  endTime: SortOrder
+  vehicleNumber: SortOrder
+  phoneNumber: SortOrder
+  passcode: SortOrder
+  status: SortOrder
+  slotId: SortOrder
+  customerId: SortOrder
+}
+
+input BookingWhereUniqueInput {
+  id: Int!
 }
 
 enum BookingScalarFieldEnum {
@@ -788,6 +892,22 @@ enum BookingScalarFieldEnum {
   customerId
 }
 
+input ValetAssignmentOrderByWithRelationInput {
+  bookingId: SortOrder
+  createdAt: SortOrder
+  updatedAt: SortOrder
+  pickupLat: SortOrder
+  pickupLng: SortOrder
+  returnLat: SortOrder
+  returnLng: SortOrder
+  pickupValetId: SortOrder
+  returnValetId: SortOrder
+}
+
+input ValetAssignmentWhereUniqueInput {
+  bookingId: Float
+}
+
 enum ValetAssignmentScalarFieldEnum {
   bookingId
   createdAt
@@ -800,6 +920,19 @@ enum ValetAssignmentScalarFieldEnum {
   returnValetId
 }
 
+input BookingTimelineOrderByWithRelationInput {
+  id: SortOrder
+  timestamp: SortOrder
+  status: SortOrder
+  bookingId: SortOrder
+  valetId: SortOrder
+  managerId: SortOrder
+}
+
+input BookingTimelineWhereUniqueInput {
+  id: Float
+}
+
 enum BookingTimelineScalarFieldEnum {
   id
   timestamp
@@ -807,6 +940,20 @@ enum BookingTimelineScalarFieldEnum {
   bookingId
   valetId
   managerId
+}
+
+input ReviewOrderByWithRelationInput {
+  id: SortOrder
+  createdAt: SortOrder
+  updatedAt: SortOrder
+  rating: SortOrder
+  comment: SortOrder
+  customerId: SortOrder
+  garageId: SortOrder
+}
+
+input ReviewWhereUniqueInput {
+  id: Float
 }
 
 enum ReviewScalarFieldEnum {
@@ -817,6 +964,18 @@ enum ReviewScalarFieldEnum {
   comment
   customerId
   garageId
+}
+
+input VerificationOrderByWithRelationInput {
+  createdAt: SortOrder
+  updatedAt: SortOrder
+  verified: SortOrder
+  adminId: SortOrder
+  garageId: SortOrder
+}
+
+input VerificationWhereUniqueInput {
+  garageId: Float
 }
 
 enum VerificationScalarFieldEnum {
@@ -832,48 +991,49 @@ type Mutation {
   registerWithProvider(registerWithProviderInput: RegisterWithProviderInput!): User!
   login(loginInput: LoginInput!): LoginOutput!
   updateUser(updateUserInput: UpdateUserInput!): User!
-  removeUser: User!
+  removeUser(where: UserWhereUniqueInput!): User!
   createAdmin(createAdminInput: CreateAdminInput!): Admin!
   updateAdmin(updateAdminInput: UpdateAdminInput!): Admin!
-  removeAdmin: Admin!
+  removeAdmin(where: AdminWhereUniqueInput!): Admin!
   createCustomer(createCustomerInput: CreateCustomerInput!): Customer!
   updateCustomer(updateCustomerInput: UpdateCustomerInput!): Customer!
-  removeCustomer: Customer!
+  removeCustomer(where: CustomerWhereUniqueInput!): Customer!
   createManager(createManagerInput: CreateManagerInput!): Manager!
   updateManager(updateManagerInput: UpdateManagerInput!): Manager!
-  removeManager: Manager!
+  removeManager(where: ManagerWhereUniqueInput!): Manager!
   createValet(createValetInput: CreateValetInput!): Valet!
   assignValet(bookingId: Float!, status: String!): Booking!
   updateValet(updateValetInput: UpdateValetInput!): Valet!
-  removeValet: Valet!
+  removeValet(where: ValetWhereUniqueInput!): Valet!
   createCompany(createCompanyInput: CreateCompanyInput!): Company!
   updateCompany(updateCompanyInput: UpdateCompanyInput!): Company!
-  removeCompany: Company!
+  removeCompany(where: CompanyWhereUniqueInput!): Company!
   createGarage(createGarageInput: CreateGarageInput!): Garage!
   updateGarage(updateGarageInput: UpdateGarageInput!): Garage!
-  removeGarage: Garage!
+  removeGarage(where: GarageWhereUniqueInput!): Garage!
   createAddress(createAddressInput: CreateAddressInput!): Address!
   updateAddress(updateAddressInput: UpdateAddressInput!): Address!
-  removeAddress: Address!
+  removeAddress(where: AddressWhereUniqueInput!): Address!
   createSlot(createSlotInput: CreateSlotInput!): Slot!
   createManySlots(createSlotInput: CreateSlotInput!, count: Float!): ReturnCount!
   updateSlot(updateSlotInput: UpdateSlotInput!): Slot!
-  removeSlot: Slot!
+  removeSlot(where: SlotWhereUniqueInput!): Slot!
   createBooking(createBookingInput: CreateBookingInput!): Booking!
   updateBooking(updateBookingInput: UpdateBookingInput!): Booking!
-  removeBooking: Booking!
+  removeBooking(where: BookingWhereUniqueInput!): Booking!
+  updateBookingStatus(bookingId: Float!, status: String!): Booking!
   createValetAssignment(createValetAssignmentInput: CreateValetAssignmentInput!): ValetAssignment!
   updateValetAssignment(updateValetAssignmentInput: UpdateValetAssignmentInput!): ValetAssignment!
-  removeValetAssignment: ValetAssignment!
+  removeValetAssignment(where: ValetAssignmentWhereUniqueInput!): ValetAssignment!
   createBookingTimeline(createBookingTimelineInput: CreateBookingTimelineInput!): BookingTimeline!
   updateBookingTimeline(updateBookingTimelineInput: UpdateBookingTimelineInput!): BookingTimeline!
-  removeBookingTimeline: BookingTimeline!
+  removeBookingTimeline(where: BookingTimelineWhereUniqueInput!): BookingTimeline!
   createReview(createReviewInput: CreateReviewInput!): Review!
   updateReview(updateReviewInput: UpdateReviewInput!): Review!
-  removeReview: Review!
+  removeReview(where: ReviewWhereUniqueInput!): Review!
   createVerification(createVerificationInput: CreateVerificationInput!): Verification!
   updateVerification(updateVerificationInput: UpdateVerificationInput!): Verification!
-  removeVerification: Verification!
+  removeVerification(where: VerificationWhereUniqueInput!): Verification!
 }
 
 input RegisterWithCredentialsInput {

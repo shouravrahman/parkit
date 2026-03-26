@@ -32,5 +32,6 @@ export class FindManyGarageArgs extends PartialType(FindManyGarageArgsStrict) {}
 
 @ArgsType()
 export class FindUniqueGarageArgs {
+  @Field(() => GarageWhereUniqueInput)
   where: GarageWhereUniqueInput
 }

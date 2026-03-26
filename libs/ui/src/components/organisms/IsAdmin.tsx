@@ -7,7 +7,7 @@ import { ReactNode } from 'react'
 import { useSession } from 'next-auth/react'
 
 export const IsAdmin = ({ children }: { children: ReactNode }) => {
-  const { data, loading } = useQuery(AdminMeDocument)
+  const { data, loading } = useQuery(AdminMeDocument, { fetchPolicy: 'cache-first' })
 
   if (loading) {
     return <LoaderPanel text="Loading company..." />

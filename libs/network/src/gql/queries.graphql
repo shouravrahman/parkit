@@ -55,7 +55,6 @@ mutation Login($loginInput: LoginInput!) {
 
 query GetAuthProvider($uid: String!) {
   getAuthProvider(uid: $uid) {
-    uid
     type
   }
 }
@@ -192,6 +191,7 @@ fragment BookingFields on Booking {
     timestamp
   }
   valetAssignment {
+    bookingId
     pickupValet {
       ...ValetFields
     }
@@ -321,11 +321,12 @@ query companyValets(
   companyValetsTotal(where: $where)
 }
 
-query valetPickups($skip: Float, $take: Float) {
+query valetPickups($skip: Int, $take: Int) {
   valetPickups(skip: $skip, take: $take) {
     id
     vehicleNumber
     valetAssignment {
+    bookingId
       pickupLat
       pickupLng
       pickupValetId
@@ -344,13 +345,14 @@ query valetPickups($skip: Float, $take: Float) {
   valetPickupsTotal
 }
 
-query valetDrops($skip: Float, $take: Float) {
+query valetDrops($skip: Int, $take: Int) {
   valetDrops(skip: $skip, take: $take) {
     id
     vehicleNumber
     startTime
     endTime
     valetAssignment {
+    bookingId
       returnLat
       returnLng
       returnValetId
@@ -406,6 +408,7 @@ query myPickupTrips(
   ) {
     ...ValetBookingFields
     valetAssignment {
+    bookingId
       pickupLat
       pickupLng
       pickupValetId
@@ -431,6 +434,7 @@ query myDropTrips(
   ) {
     ...ValetBookingFields
     valetAssignment {
+    bookingId
       returnLat
       returnLng
       returnValetId
@@ -509,5 +513,12 @@ mutation CreateAdmin($createAdminInput: CreateAdminInput!) {
     }
     uid
     updatedAt
+  }
+}
+
+mutation UpdateBookingStatus($bookingId: Float!, $status: String!) {
+  updateBookingStatus(bookingId: $bookingId, status: $status) {
+    id
+    status
   }
 }

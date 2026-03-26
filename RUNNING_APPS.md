@@ -18,6 +18,7 @@ cd ../..
 ## 📱 Running Individual Apps
 
 ### API (NestJS) - Port 3000
+
 ```bash
 # Option 1: From root
 yarn --filter @parkit/api dev
@@ -27,25 +28,29 @@ cd apps/api && yarn dev
 ```
 
 ### WEB (Customer App) - Port 3001
+
 ```bash
 # Option 1: From root
-yarn --filter @parkit/web dev
+yarn  workspace @parkit/web dev
 
 # Option 2: From web directory
 cd apps/web && yarn dev
 ```
 
 ### WEB-ADMIN (Admin Dashboard) - Port 3002
+
 ```bash
 yarn workspace @parkit/web-admin dev
 ```
 
 ### WEB-MANAGER (Manager Dashboard) - Port 3003
+
 ```bash
 yarn workspace @parkit/web-manager dev
 ```
 
 ### WEB-VALET (Valet App) - Port 3004
+
 ```bash
 yarn workspace @parkit/web-valet dev
 ```
@@ -58,6 +63,7 @@ yarn dev
 ```
 
 This will start:
+
 - API at http://localhost:3000
 - WEB at http://localhost:3001
 - WEB-ADMIN at http://localhost:3002
@@ -117,21 +123,25 @@ yarn entity:complete
 ## 🐳 Docker Database
 
 ### Start Database
+
 ```bash
 docker-compose up -d
 ```
 
 ### Stop Database
+
 ```bash
 docker-compose down
 ```
 
 ### View Logs
+
 ```bash
 docker-compose logs -f
 ```
 
 ### Database Connection Details
+
 - Host: `localhost`
 - Port: `2010`
 - User: `postgres`
@@ -141,6 +151,7 @@ docker-compose logs -f
 ## 📦 Package Manager Commands
 
 ### Filter specific apps
+
 ```bash
 # Install in specific app
 yarn workspace @parkit/api install
@@ -153,6 +164,7 @@ yarn -r dev
 ```
 
 ### Parallel execution
+
 ```bash
 # Run concurrently
 yarn --parallel dev
@@ -172,6 +184,7 @@ yarn --parallel dev
 ## 🐛 Troubleshooting
 
 ### Port already in use
+
 If a port is already in use, check the specific app's `package.json` scripts to see how to change the port:
 
 ```bash
@@ -180,6 +193,7 @@ yarn workspace @parkit/web dev -- -p 3010
 ```
 
 ### Clean install
+
 ```bash
 # Remove lock file and node_modules
 rm -rf yarn-lock.yaml node_modules
@@ -189,6 +203,7 @@ yarn install
 ```
 
 ### Reset database
+
 ```bash
 cd apps/api
 

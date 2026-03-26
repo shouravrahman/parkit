@@ -15,7 +15,7 @@ export type ViewState = {
   zoom?: number
 }
 
-export type LocationInfo = { placeName: string; latLng: [number, number] }
+export type LocationInfo = { placeName: string; latLng: [number, number]; boundingbox?: [string, string, string, string] }
 
 export type TotalPrice = {
   parkingCharge: number

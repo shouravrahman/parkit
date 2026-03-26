@@ -16,10 +16,15 @@ class FindManyVerificationArgsStrict implements RestrictProperties<
   FindManyVerificationArgsStrict,
   Omit<Prisma.VerificationFindManyArgs, 'include' | 'select'>
 > {
+  @Field(() => VerificationWhereInput, { nullable: true })
   where: VerificationWhereInput
+  @Field(() => [VerificationOrderByWithRelationInput], { nullable: true })
   orderBy: VerificationOrderByWithRelationInput[]
+  @Field(() => VerificationWhereUniqueInput, { nullable: true })
   cursor: VerificationWhereUniqueInput
+  @Field({ nullable: true })
   take: number
+  @Field({ nullable: true })
   skip: number
   @Field(() => [Prisma.VerificationScalarFieldEnum])
   distinct: Prisma.VerificationScalarFieldEnum[]
@@ -32,5 +37,6 @@ export class FindManyVerificationArgs extends PartialType(
 
 @ArgsType()
 export class FindUniqueVerificationArgs {
+  @Field(() => VerificationWhereUniqueInput)
   where: VerificationWhereUniqueInput
 }

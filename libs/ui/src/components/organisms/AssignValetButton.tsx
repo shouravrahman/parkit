@@ -1,7 +1,8 @@
 import {
   AssignValetDocument,
   BookingStatus,
-  namedOperations,
+  ValetDropsDocument,
+  ValetPickupsDocument,
 } from '@parkit/network/src/gql/generated'
 import { ReactNode } from 'react'
 import { useMutation } from '@apollo/client'
@@ -20,10 +21,8 @@ export const AssignValetButton = ({
   const [assignPickup, { data, loading }] = useMutation(AssignValetDocument, {
     awaitRefetchQueries: true,
     refetchQueries: [
-      namedOperations.Query.valetDrops,
-      namedOperations.Query.valetPickups,
-      namedOperations.Query.myDropTrips,
-      namedOperations.Query.myPickupTrips,
+      ValetDropsDocument,
+      ValetPickupsDocument,
     ],
     onCompleted(data, clientOptions) {
       toast(`Action successful.

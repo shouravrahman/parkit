@@ -1,16 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { cookies } from 'next/headers'
+import { getToken } from 'next-auth/jwt'
 
-export async function GET(req: NextRequest, res: NextResponse) {
-  const getCookies = cookies()
-  const isDevelopment = process.env.NODE_ENV === 'development'
+export async function GET(req: NextRequest) {
+  const cookieName =
+    process.env.NEXTAUTH_COOKIE_NAME || 'next-auth.session-token'
 
-  // Use the appropriate cookie name based on the environment
-  const cookieName = isDevelopment
-    ? 'next-auth.session-token'
-    : '__Secure-next-auth.session-token'
+  const token = await getToken({
+    req,
+    raw: true,
+    cookieName,
+  })
 
-  const nextAuthSession = getCookies.get(cookieName)?.value || ''
-
-  return NextResponse.json(nextAuthSession)
+  return NextResponse.json(token || '')
 }

@@ -17,7 +17,7 @@ export const IsLoggedIn = ({
   const { status, data } = useSession()
 
   if (status === 'loading') {
-    return <LoaderPanel text="Loading user..." />
+    return null
   }
 
   if (!data?.user?.uid) {

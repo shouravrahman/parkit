@@ -9,13 +9,10 @@ import { useQuery } from '@apollo/client'
 import { useTakeSkip } from '@parkit/util/hooks/pagination'
 import { ShowData } from './ShowData'
 import { ManageBookingCard } from './ManageBookingCard'
-import { CheckInOutButton } from './CheckInOutButtons'
 
 export const ShowGarageBookings = ({
   garageId,
   statuses,
-  showCheckIn = false,
-  showCheckOut = false,
 }: {
   garageId: number
   statuses: BookingStatus[]
@@ -25,17 +22,13 @@ export const ShowGarageBookings = ({
   const [searchTerm, setSearchTerm] = useState('')
   const { take, setTake, skip, setSkip } = useTakeSkip()
 
-  const { data, loading, error } = useQuery(BookingsForGarageDocument, {
+  const { data, loading } = useQuery(BookingsForGarageDocument, {
     variables: {
       skip,
       take,
       where: {
         status: { in: statuses },
-        Slot: {
-          is: {
-            garageId: { equals: garageId },
-          },
-        },
+        Slot: { is: { garageId: { equals: garageId } } },
         ...(searchTerm && {
           vehicleNumber: {
             contains: searchTerm,
@@ -47,18 +40,19 @@ export const ShowGarageBookings = ({
   })
 
   return (
-    <div className="mt-4">
-      <div className="flex justify-center">
-        <div className="flex justify-start items-center gap-2 w-full max-w-xl  rounded-full shadow-xl bg-white px-4">
-          <IconSearch />
-          <input
-            placeholder="Search vehicle number"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="flex-grow py-4 bg-transparent"
-          />
-        </div>
+    <div className="mt-4 space-y-4">
+      {/* Search */}
+      <div className="flex items-center gap-2 bg-dark-200 border border-white/10 rounded-xl px-4 py-2.5 focus-within:border-primary/50 transition-colors max-w-sm">
+        <IconSearch className="w-4 h-4 text-gray-500 shrink-0" />
+        <input
+          placeholder="Search vehicle number"
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="flex-1 bg-transparent text-sm text-white placeholder-gray-500 outline-none"
+        />
       </div>
+
+      {/* Cards */}
       <ShowData
         loading={loading}
         pagination={{
@@ -69,25 +63,10 @@ export const ShowGarageBookings = ({
           setSkip,
           setTake,
         }}
+        childrenClassName="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"
       >
-        {data?.bookingsForGarage.map((booking) => (
-          <div key={booking.id}>
-            <ManageBookingCard booking={booking} />
-            {showCheckIn ? (
-              <CheckInOutButton
-                status={BookingStatus.CheckedIn}
-                buttonText="CHECK IN"
-                bookingId={booking.id}
-              />
-            ) : null}
-            {showCheckOut ? (
-              <CheckInOutButton
-                status={BookingStatus.CheckedOut}
-                buttonText="CHECK OUT"
-                bookingId={booking.id}
-              />
-            ) : null}
-          </div>
+        {data?.bookingsForGarage.map((booking: (typeof data)["bookingsForGarage"][number]) => (
+          <ManageBookingCard key={booking.id} booking={booking} />
         ))}
       </ShowData>
     </div>

@@ -7,6 +7,8 @@ import {
   WORLD_END,
   WORLD_START,
   roadColor,
+  dark,
+  dark100,
 } from '../util/constants'
 import * as THREE from 'three'
 import { Square } from '../components/Square'
@@ -30,8 +32,7 @@ export const CarScene = ({
   return (
     <Canvas
       style={{
-        background:
-          'linear-gradient(to top right, hsl(0, 0%, 8%), hsl(52, 0%, 18%))',
+        background: `linear-gradient(to top right, ${dark}, ${dark100})`,
       }}
     >
       {camera || (
