@@ -6,7 +6,7 @@ export async function GET(req: NextRequest) {
     process.env.NEXTAUTH_COOKIE_NAME || 'next-auth.session-token'
 
   const token = await getToken({
-    req,
+    req: req as any,
     raw: true,
     cookieName,
   })
