@@ -1,5 +1,4 @@
 {
-    "packageManager": "yarn@1.22.22",
-    "buildCommand": "yarn run build",
-    "installCommand": "yarn install"
+  "buildCommand": "yarn run build",
+  "installCommand": "yarn install"
 }
