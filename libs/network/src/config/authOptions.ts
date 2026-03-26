@@ -15,7 +15,6 @@ const MAX_AGE = 1 * 24 * 60 * 60
 
 const secureCookies = process.env.NEXTAUTH_URL?.startsWith('https://')
 const hostName = new URL(process.env.NEXTAUTH_URL || '').hostname
-const rootDomain = 'karthicktech.com'
 
 export const authOptions: NextAuthOptions = {
   // Configure authentication providers
@@ -61,7 +60,9 @@ export const authOptions: NextAuthOptions = {
           const name = data.login.user.name
 
           return { id: uid, name, image, email }
-        } catch (error) { }
+        } catch (error) {
+          console.error('NextAuth authorize error:', error)
+        }
         return null
       },
     }),
@@ -124,7 +125,7 @@ export const authOptions: NextAuthOptions = {
         sameSite: 'lax',
         path: '/',
         secure: secureCookies,
-        domain: hostName == 'localhost' ? hostName : '.' + rootDomain, // add a . in front so that subdomains are included
+        domain: hostName === 'localhost' ? hostName : undefined,
       },
     },
   },
