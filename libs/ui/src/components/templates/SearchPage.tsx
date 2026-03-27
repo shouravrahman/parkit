@@ -1,5 +1,5 @@
-"use client"
-import { useCallback, useEffect, useRef, useState } from 'react'
+'use client'
+import { useCallback, useRef, useState } from 'react'
 import dynamic from 'next/dynamic'
 import { initialViewState } from '@parkit/util/constants'
 import { SearchPlaceBoxSidebar } from '../organisms/map/SearchPlacesBoxSidebar'
@@ -9,7 +9,16 @@ import {
   FormTypeSearchGarage,
   formDefaultValuesSearchGarages,
 } from '@parkit/forms/src/searchGarages'
-import { IconArrowDown, IconAdjustments, IconX } from '@tabler/icons-react'
+import {
+  IconArrowDown,
+  IconAdjustments,
+  IconX,
+  IconShieldCheck,
+  IconSortAscending,
+  IconSortDescending,
+  IconList,
+  IconMap,
+} from '@tabler/icons-react'
 import { IconType } from '../molecules/IconTypes'
 import { toLocalISOString } from '@parkit/util/date'
 const SearchMap = dynamic(
@@ -21,8 +30,10 @@ import { ToggleButtonGroup, ToggleButton } from '../molecules/ToggleButtonGroup'
 import { IconTypes } from '../molecules/IconTypes'
 import { PulsingDot } from '../atoms/Dot'
 import { SlotType } from '@parkit/network/src/gql/generated'
-
-// BoundsWatcher moved into the client-only `SearchMap` component (react-leaflet hooks are not SSR-safe)
+const GarageResultsList = dynamic(
+  () => import('../organisms/search/GarageResultsList').then((m) => m.GarageResultsList),
+  { ssr: false },
+)
 
 const Divider = () => <div className="border-t border-white/5" />
 
@@ -81,20 +92,39 @@ export const SearchPage = () => {
 
   const errorEntries = Object.entries(errors)
   const hasFilters = Object.keys(dirtyFields).some((k) =>
-    ['types', 'pricePerHour', 'width', 'height', 'length'].includes(k),
+    [
+      'types',
+      'pricePerHour',
+      'width',
+      'height',
+      'length',
+      'verifiedOnly',
+      'sortBy',
+    ].includes(k),
   )
   const [mobileOpen, setMobileOpen] = useState(false)
+  const [mobileView, setMobileView] = useState<'map' | 'list'>('map')
 
   return (
     <MapFlyContext.Provider value={flyRef}>
       <div className="flex flex-col md:flex-row h-[calc(100vh-4rem)] overflow-hidden bg-dark relative">
         {/* ── Sidebar ── */}
-        <aside className={`${mobileOpen ? "flex" : "hidden"} md:flex w-full md:w-72 shrink-0 flex-col bg-dark-100 border-r border-white/10 overflow-y-auto absolute md:relative inset-0 z-[500] md:z-auto`}>
+        <aside
+          className={`${mobileOpen ? 'flex' : 'hidden'} md:flex w-full md:w-72 shrink-0 flex-col bg-dark-100 border-r border-white/10 overflow-y-auto absolute md:relative inset-0 z-[500] md:z-auto`}
+        >
           {/* Mobile close */}
           <div className="flex md:hidden items-center justify-between px-4 pt-3 pb-2 border-b border-white/10">
-            <span className="text-sm font-semibold text-white">Search & Filters</span>
-            <button onClick={() => setMobileOpen(false)} className="p-1 rounded-lg hover:bg-white/10 text-gray-400"><IconX className="w-4 h-4" /></button>
+            <span className="text-sm font-semibold text-white">
+              Search & Filters
+            </span>
+            <button
+              onClick={() => setMobileOpen(false)}
+              className="p-1 rounded-lg hover:bg-white/10 text-gray-400"
+            >
+              <IconX className="w-4 h-4" />
+            </button>
           </div>
+
           {/* Location */}
           <div className="px-4 pt-4 pb-3 border-b border-white/5">
             <SectionLabel label="Location" />
@@ -165,6 +195,65 @@ export const SearchPage = () => {
                 reset({ ...getValues(), ...formDefaultValuesSearchGarages })
               }
             />
+
+            {/* Verified only + Sort row */}
+            <div className="flex items-center justify-between gap-2">
+              <Controller
+                name="verifiedOnly"
+                control={control}
+                render={({ field: { value, onChange } }) => (
+                  <button
+                    type="button"
+                    onClick={() => onChange(!value)}
+                    className={`flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg border transition-all ${
+                      value
+                        ? 'border-primary/60 bg-primary/15 text-primary'
+                        : 'border-white/10 bg-dark-200 text-gray-400 hover:border-white/20'
+                    }`}
+                  >
+                    <IconShieldCheck className="w-3.5 h-3.5" />
+                    Verified only
+                  </button>
+                )}
+              />
+
+              <Controller
+                name="sortBy"
+                control={control}
+                render={({ field: { value, onChange } }) => (
+                  <button
+                    type="button"
+                    onClick={() =>
+                      onChange(
+                        value === 'price_asc'
+                          ? 'price_desc'
+                          : value === 'price_desc'
+                            ? undefined
+                            : 'price_asc',
+                      )
+                    }
+                    className={`flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg border transition-all ${
+                      value
+                        ? 'border-primary/60 bg-primary/15 text-primary'
+                        : 'border-white/10 bg-dark-200 text-gray-400 hover:border-white/20'
+                    }`}
+                  >
+                    {value === 'price_desc' ? (
+                      <IconSortDescending className="w-3.5 h-3.5" />
+                    ) : (
+                      <IconSortAscending className="w-3.5 h-3.5" />
+                    )}
+                    {value === 'price_asc'
+                      ? 'Price ↑'
+                      : value === 'price_desc'
+                        ? 'Price ↓'
+                        : 'Sort'}
+                  </button>
+                )}
+              />
+            </div>
+
+            <Divider />
 
             {/* Vehicle type */}
             <Controller
@@ -326,22 +415,47 @@ export const SearchPage = () => {
           </div>
         </aside>
 
-        {/* Mobile filter button */}
-        <button
-          onClick={() => setMobileOpen(true)}
-          className="md:hidden absolute bottom-6 left-1/2 -translate-x-1/2 z-[500] flex items-center gap-2 px-4 py-2.5 rounded-full bg-dark-100 border border-white/20 text-white text-sm font-medium shadow-xl"
+        {/* Mobile bottom bar */}
+        <div className="md:hidden absolute bottom-6 left-1/2 -translate-x-1/2 z-[500] flex items-center gap-2">
+          <button
+            onClick={() => setMobileOpen(true)}
+            className="flex items-center gap-2 px-4 py-2.5 rounded-full bg-dark-100 border border-white/20 text-white text-sm font-medium shadow-xl"
+          >
+            <IconAdjustments className="w-4 h-4 text-primary" />
+            Filters
+            {hasFilters && (
+              <span className="w-2 h-2 rounded-full bg-primary animate-pulse" />
+            )}
+          </button>
+          <button
+            onClick={() => setMobileView((v) => (v === 'map' ? 'list' : 'map'))}
+            className="flex items-center gap-2 px-4 py-2.5 rounded-full bg-dark-100 border border-white/20 text-white text-sm font-medium shadow-xl"
+          >
+            {mobileView === 'map' ? (
+              <IconList className="w-4 h-4 text-primary" />
+            ) : (
+              <IconMap className="w-4 h-4 text-primary" />
+            )}
+            {mobileView === 'map' ? 'List' : 'Map'}
+          </button>
+        </div>
+
+        {/* ── Map ── */}
+        <div
+          className={`flex-1 relative ${mobileView === 'list' ? 'hidden md:block' : 'block'}`}
         >
-          <IconAdjustments className="w-4 h-4 text-primary" />
-          Search & Filters
-          {hasFilters && <span className="w-2 h-2 rounded-full bg-primary animate-pulse" />}
-        </button>
-        {/* ── Map (client-only, dynamically loaded) ── */}
-        <div className="flex-1 relative">
           <SearchMap
             initialViewState={initialViewState}
             height="100%"
             onBoundsChange={handleBoundsChange}
           />
+        </div>
+
+        {/* ── Results list (desktop right panel + mobile list view) ── */}
+        <div
+          className={`${mobileView === 'list' ? 'flex' : 'hidden'} md:flex w-full md:w-80 shrink-0 flex-col bg-dark-100 border-l border-white/10 overflow-y-auto relative z-10`}
+        >
+          <GarageResultsList />
         </div>
       </div>
     </MapFlyContext.Provider>

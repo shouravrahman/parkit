@@ -20,7 +20,7 @@ import {
 } from '@headlessui/react'
 import { Fragment } from 'react'
 import { IconX } from '@tabler/icons-react'
-import { useSubscription } from '@apollo/client'
+import { useSubscription } from '@parkit/network/src/config/apollo-hooks'
 
 const GarageMarkerInner = ({
   marker,
@@ -46,9 +46,9 @@ const GarageMarkerInner = ({
 
   if (!marker.address?.lat || !marker.address.lng) return null
 
-  const mergedMarker = liveSlots
-    ? { ...marker, availableSlots: liveSlots }
-    : marker
+  const mergedMarker = (liveSlots
+    ? { ...marker, availableSlots: liveSlots as typeof marker.availableSlots }
+    : marker) as SearchGaragesQuery["searchGarages"][number]
 
   return (
     <>

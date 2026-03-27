@@ -1,5 +1,5 @@
 import { memo } from 'react'
-import { useLazyQuery } from '@apollo/client'
+import { useLazyQuery } from '@parkit/network/src/config/apollo-hooks'
 import { SearchGaragesDocument } from '@parkit/network/src/gql/generated'
 import { useEffect } from 'react'
 import { GarageMarker } from './GarageMarker'

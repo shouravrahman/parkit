@@ -22,6 +22,8 @@ type FormData = Partial<
     | 'locationFilter'
     | 'skip'
     | 'take'
+    | 'verifiedOnly'
+    | 'sortBy'
   >
 >
 
@@ -35,9 +37,7 @@ export const useConvertSearchFormToVariables = () => {
   } = useFormContext<FormTypeSearchGarage>()
 
   const formData = useWatch<FormTypeSearchGarage>()
-
   const [debouncedFormData, { debouncing }] = useDebounce(formData, 300)
-
   const hasErrors = Object.keys(errors).length !== 0
 
   useEffect(() => {
@@ -52,11 +52,10 @@ export const useConvertSearchFormToVariables = () => {
       types,
       skip,
       take,
+      verifiedOnly,
     } = debouncedFormData
 
-    if (!startTime || !endTime || !locationFilter) {
-      return
-    }
+    if (!startTime || !endTime || !locationFilter) return
 
     const dateFilter: SearchGaragesQueryVariables['dateFilter'] = {
       start: startTime,
@@ -73,14 +72,19 @@ export const useConvertSearchFormToVariables = () => {
       types,
     })
 
-    const garagesFilter = createGaragesFilter(dirtyFields, { skip, take })
+    const garagesFilter = createGaragesFilter(dirtyFields, {
+      skip,
+      take,
+      verifiedOnly,
+    })
 
-    const nextVars = {
+    const nextVars: SearchGaragesQueryVariables = {
       dateFilter,
       locationFilter: { ne_lat, ne_lng, sw_lat, sw_lng },
       ...(Object.keys(slotsFilter).length && { slotsFilter }),
       ...(Object.keys(garagesFilter).length && { garageFilter: garagesFilter }),
     }
+
     const serialized = JSON.stringify(nextVars)
     if (serialized !== prevVariablesRef.current) {
       prevVariablesRef.current = serialized
@@ -118,8 +122,13 @@ export const createGaragesFilter = (
   const skip = (dirtyFields.skip && formData.skip) || 0
   const take = (dirtyFields.take && formData.take) || 10
 
+  const where = formData.verifiedOnly
+    ? { Verification: { is: { verified: { equals: true } } } }
+    : undefined
+
   return {
     ...(skip && { skip }),
     ...(take && { take }),
+    ...(where && { where }),
   }
 }

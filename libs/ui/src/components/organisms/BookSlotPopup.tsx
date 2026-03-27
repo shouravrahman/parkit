@@ -60,7 +60,7 @@ export const BookSlotPopup = ({
             toast('You are not logged in.')
             return
           }
-          const bookingData: CreateBookingInput = {
+          const bookingData = {
             phoneNumber: data.phoneNumber,
             customerId: uid,
             endTime: data.endTime,

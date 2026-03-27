@@ -2,7 +2,7 @@ import { SlotType } from '@parkit/network/src/gql/generated'
 import { z } from 'zod'
 import { toLocalISOString } from '@parkit/util/date'
 import { ReactNode } from 'react'
-import { DefaultValues, useForm, FormProvider, Form } from 'react-hook-form'
+import { DefaultValues, useForm, FormProvider } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { isEndTimeValid, isStartTimeValid } from './util'
 
@@ -27,6 +27,9 @@ export const formSchemaSearchGarage = z
     width: minMaxTuple.optional(),
     length: minMaxTuple.optional(),
 
+    verifiedOnly: z.boolean().optional(),
+    sortBy: z.enum(['price_asc', 'price_desc']).optional(),
+
     skip: z.number().optional(),
     take: z.number().optional(),
   })
@@ -44,10 +47,8 @@ export type FormTypeSearchGarage = z.infer<typeof formSchemaSearchGarage>
 export const getCurrentTimeAndOneHourLater = () => {
   const startTime = new Date()
   startTime.setMinutes(startTime.getMinutes() + 5)
-
   const endTime = new Date(startTime)
   endTime.setHours(endTime.getHours() + 1)
-
   return {
     startTime: toLocalISOString(startTime).slice(0, 16),
     endTime: toLocalISOString(endTime).slice(0, 16),
@@ -68,6 +69,8 @@ export const formDefaultValuesSearchGarages: DefaultValues<FormTypeSearchGarage>
     height: [0, 100],
     length: [0, 100],
     types: AllSlotTypes.sort(),
+    verifiedOnly: false,
+    sortBy: undefined,
   }
 
 export const FormProviderSearchGarage = ({
