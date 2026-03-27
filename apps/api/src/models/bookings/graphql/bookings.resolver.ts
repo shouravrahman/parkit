@@ -26,13 +26,15 @@ import { AggregateCountOutput } from 'src/common/dtos/common.input'
 import { BookingWhereInput } from './dtos/where.args'
 import { BookingTimeline } from 'src/models/booking-timelines/graphql/entity/booking-timeline.entity'
 import { BadRequestException } from '@nestjs/common'
-import { BookingStatus } from '@prisma/client'
+import { BookingStatus, NotificationType } from '@prisma/client'
+import { NotificationsService } from 'src/models/notifications/graphql/notifications.service'
 
 @Resolver(() => Booking)
 export class BookingsResolver {
   constructor(
     private readonly bookingsService: BookingsService,
     private readonly prisma: PrismaService,
+    private readonly notificationsService: NotificationsService,
     @Inject(PUB_SUB) private readonly pubSub: PubSub,
   ) { }
 
@@ -45,7 +47,33 @@ export class BookingsResolver {
     checkRowLevelPermission(user, args.customerId)
     const booking = await this.bookingsService.create(args)
 
-    // Publish updated availability for this garage
+    // Notify customer
+    try {
+      await this.notificationsService.create({
+        userId: args.customerId,
+        title: 'Booking Confirmed',
+        message: `Your booking #${booking.id} has been confirmed.`,
+        type: NotificationType.BOOKING_CONFIRMED,
+      })
+    } catch { }
+
+    // Notify garage manager
+    try {
+      const slot = await this.prisma.slot.findUnique({
+        where: { id: booking.slotId },
+        include: { Garage: { include: { Company: { include: { Managers: true } } } } },
+      })
+      for (const manager of slot?.Garage?.Company?.Managers ?? []) {
+        await this.notificationsService.create({
+          userId: manager.uid,
+          title: 'New Booking',
+          message: `A new booking #${booking.id} has been made at ${slot.Garage.displayName ?? 'your garage'}.`,
+          type: NotificationType.NEW_BOOKING,
+        })
+      }
+    } catch { }
+
+    // Publish slot availability
     try {
       await publishSlotAvailability(
         this.pubSub,
@@ -201,8 +229,22 @@ export class BookingsResolver {
       return b
     })
 
-    // Publish availability update when booking is cancelled
-    if (bookingStatus === BookingStatus.CHECKED_OUT || bookingStatus === BookingStatus.VALET_RETURNED) {
+    // Notify customer of status change
+    try {
+      const statusLabel = bookingStatus.replace(/_/g, ' ').toLowerCase()
+      await this.notificationsService.create({
+        userId: booking.customerId,
+        title: 'Booking Updated',
+        message: `Your booking #${bookingId} status is now: ${statusLabel}.`,
+        type: NotificationType.BOOKING_STATUS_UPDATED,
+      })
+    } catch { }
+
+    // Publish slot availability on checkout
+    if (
+      bookingStatus === BookingStatus.CHECKED_OUT ||
+      bookingStatus === BookingStatus.VALET_RETURNED
+    ) {
       try {
         await publishSlotAvailability(
           this.pubSub,

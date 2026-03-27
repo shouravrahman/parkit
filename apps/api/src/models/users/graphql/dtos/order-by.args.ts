@@ -10,7 +10,7 @@ export class UserOrderByWithRelationInputStrict implements RestrictProperties<
   UserOrderByWithRelationInputStrict,
   Omit<
     Prisma.UserOrderByWithRelationInput,
-    'Credentials' | 'AuthProvider' | 'Admin' | 'image'
+    'Credentials' | 'AuthProvider' | 'Admin' | 'image' | 'Notifications'
   >
 > {
   Customer: CustomerOrderByWithRelationInput

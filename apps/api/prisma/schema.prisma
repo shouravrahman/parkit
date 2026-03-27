@@ -26,7 +26,8 @@ model User {
     Admin        Admin?
     Manager      Manager?
     Valet        Valet?
-    Customer     Customer?
+    Customer      Customer?
+    Notifications Notification[]
 }
 
 model Admin {
@@ -273,4 +274,23 @@ enum BookingStatus {
     VALET_ASSIGNED_FOR_CHECK_OUT
     CHECKED_OUT
     VALET_RETURNED
+}
+
+enum NotificationType {
+    BOOKING_CONFIRMED
+    BOOKING_STATUS_UPDATED
+    VALET_ASSIGNED
+    VERIFICATION_UPDATED
+    NEW_BOOKING
+}
+
+model Notification {
+    id        Int              @id @default(autoincrement())
+    createdAt DateTime         @default(now())
+    read      Boolean          @default(false)
+    title     String
+    message   String
+    type      NotificationType
+    userId    String
+    User      User             @relation(fields: [userId], references: [uid])
 }

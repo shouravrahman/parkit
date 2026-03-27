@@ -697,6 +697,8 @@ export type Mutation = {
   createValetAssignment: ValetAssignment;
   createVerification: Verification;
   login: LoginOutput;
+  markAllNotificationsAsRead: Scalars['Boolean']['output'];
+  markNotificationAsRead: Notification;
   registerWithCredentials: User;
   registerWithProvider: User;
   removeAddress: Address;
@@ -810,6 +812,11 @@ export type MutationCreateVerificationArgs = {
 
 export type MutationLoginArgs = {
   loginInput: LoginInput;
+};
+
+
+export type MutationMarkNotificationAsReadArgs = {
+  id: Scalars['Int']['input'];
 };
 
 
@@ -968,6 +975,25 @@ export type MutationUpdateVerificationArgs = {
   updateVerificationInput: UpdateVerificationInput;
 };
 
+export type Notification = {
+  __typename?: 'Notification';
+  createdAt: Scalars['DateTime']['output'];
+  id: Scalars['Int']['output'];
+  message: Scalars['String']['output'];
+  read: Scalars['Boolean']['output'];
+  title: Scalars['String']['output'];
+  type: NotificationType;
+  userId: Scalars['String']['output'];
+};
+
+export enum NotificationType {
+  BookingConfirmed = 'BOOKING_CONFIRMED',
+  BookingStatusUpdated = 'BOOKING_STATUS_UPDATED',
+  NewBooking = 'NEW_BOOKING',
+  ValetAssigned = 'VALET_ASSIGNED',
+  VerificationUpdated = 'VERIFICATION_UPDATED'
+}
+
 export type Query = {
   __typename?: 'Query';
   address: Address;
@@ -997,6 +1023,8 @@ export type Query = {
   manager: Manager;
   managers: Array<Manager>;
   myCompany: Company;
+  myNotifications: Array<Notification>;
+  myUnreadNotificationsCount: Scalars['Int']['output'];
   review: Review;
   reviews: Array<Review>;
   searchGarages: Array<Garage>;
@@ -1518,6 +1546,7 @@ export type StringListFilter = {
 
 export type Subscription = {
   __typename?: 'Subscription';
+  notificationAdded: Notification;
   slotAvailabilityChanged: SlotAvailabilityUpdate;
 };
 
@@ -2117,6 +2146,33 @@ export type SlotAvailabilityChangedSubscriptionVariables = Exact<{
 
 export type SlotAvailabilityChangedSubscription = { __typename?: 'Subscription', slotAvailabilityChanged: { __typename?: 'SlotAvailabilityUpdate', garageId: number, availableSlots: Array<{ __typename?: 'SlotAvailabilityCount', type: SlotType, count: number, pricePerHour: number }> } };
 
+export type MyNotificationsQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type MyNotificationsQuery = { __typename?: 'Query', myNotifications: Array<{ __typename?: 'Notification', id: number, createdAt: any, read: boolean, title: string, message: string, type: NotificationType }> };
+
+export type MyUnreadNotificationsCountQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type MyUnreadNotificationsCountQuery = { __typename?: 'Query', myUnreadNotificationsCount: number };
+
+export type MarkNotificationAsReadMutationVariables = Exact<{
+  id: Scalars['Int']['input'];
+}>;
+
+
+export type MarkNotificationAsReadMutation = { __typename?: 'Mutation', markNotificationAsRead: { __typename?: 'Notification', id: number, read: boolean } };
+
+export type MarkAllNotificationsAsReadMutationVariables = Exact<{ [key: string]: never; }>;
+
+
+export type MarkAllNotificationsAsReadMutation = { __typename?: 'Mutation', markAllNotificationsAsRead: boolean };
+
+export type NotificationAddedSubscriptionVariables = Exact<{ [key: string]: never; }>;
+
+
+export type NotificationAddedSubscription = { __typename?: 'Subscription', notificationAdded: { __typename?: 'Notification', id: number, createdAt: any, read: boolean, title: string, message: string, type: NotificationType, userId: string } };
+
 export const namedOperations = {
   Query: {
     Companies: 'Companies',
@@ -2133,7 +2189,9 @@ export const namedOperations = {
     valetDrops: 'valetDrops',
     myPickupTrips: 'myPickupTrips',
     myDropTrips: 'myDropTrips',
-    admins: 'admins'
+    admins: 'admins',
+    MyNotifications: 'MyNotifications',
+    MyUnreadNotificationsCount: 'MyUnreadNotificationsCount'
   },
   Mutation: {
     RegisterWithCredentials: 'RegisterWithCredentials',
@@ -2149,10 +2207,13 @@ export const namedOperations = {
     RemoveVerification: 'RemoveVerification',
     RemoveAdmin: 'RemoveAdmin',
     CreateAdmin: 'CreateAdmin',
-    UpdateBookingStatus: 'UpdateBookingStatus'
+    UpdateBookingStatus: 'UpdateBookingStatus',
+    MarkNotificationAsRead: 'MarkNotificationAsRead',
+    MarkAllNotificationsAsRead: 'MarkAllNotificationsAsRead'
   },
   Subscription: {
-    SlotAvailabilityChanged: 'SlotAvailabilityChanged'
+    SlotAvailabilityChanged: 'SlotAvailabilityChanged',
+    NotificationAdded: 'NotificationAdded'
   },
   Fragment: {
     ValetFields: 'ValetFields',
@@ -2193,3 +2254,8 @@ export const RemoveAdminDocument = {"kind":"Document","definitions":[{"kind":"Op
 export const CreateAdminDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"CreateAdmin"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"createAdminInput"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"CreateAdminInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"createAdmin"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"createAdminInput"},"value":{"kind":"Variable","name":{"kind":"Name","value":"createAdminInput"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"createdAt"}},{"kind":"Field","name":{"kind":"Name","value":"user"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"name"}}]}},{"kind":"Field","name":{"kind":"Name","value":"uid"}},{"kind":"Field","name":{"kind":"Name","value":"updatedAt"}}]}}]}}]} as unknown as DocumentNode<CreateAdminMutation, CreateAdminMutationVariables>;
 export const UpdateBookingStatusDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"UpdateBookingStatus"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"bookingId"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"Float"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"status"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"updateBookingStatus"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"bookingId"},"value":{"kind":"Variable","name":{"kind":"Name","value":"bookingId"}}},{"kind":"Argument","name":{"kind":"Name","value":"status"},"value":{"kind":"Variable","name":{"kind":"Name","value":"status"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"status"}}]}}]}}]} as unknown as DocumentNode<UpdateBookingStatusMutation, UpdateBookingStatusMutationVariables>;
 export const SlotAvailabilityChangedDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"subscription","name":{"kind":"Name","value":"SlotAvailabilityChanged"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"garageId"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"Float"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"slotAvailabilityChanged"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"garageId"},"value":{"kind":"Variable","name":{"kind":"Name","value":"garageId"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"garageId"}},{"kind":"Field","name":{"kind":"Name","value":"availableSlots"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"type"}},{"kind":"Field","name":{"kind":"Name","value":"count"}},{"kind":"Field","name":{"kind":"Name","value":"pricePerHour"}}]}}]}}]}}]} as unknown as DocumentNode<SlotAvailabilityChangedSubscription, SlotAvailabilityChangedSubscriptionVariables>;
+export const MyNotificationsDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"MyNotifications"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"myNotifications"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"createdAt"}},{"kind":"Field","name":{"kind":"Name","value":"read"}},{"kind":"Field","name":{"kind":"Name","value":"title"}},{"kind":"Field","name":{"kind":"Name","value":"message"}},{"kind":"Field","name":{"kind":"Name","value":"type"}}]}}]}}]} as unknown as DocumentNode<MyNotificationsQuery, MyNotificationsQueryVariables>;
+export const MyUnreadNotificationsCountDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"MyUnreadNotificationsCount"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"myUnreadNotificationsCount"}}]}}]} as unknown as DocumentNode<MyUnreadNotificationsCountQuery, MyUnreadNotificationsCountQueryVariables>;
+export const MarkNotificationAsReadDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"MarkNotificationAsRead"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"id"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"Int"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"markNotificationAsRead"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"id"},"value":{"kind":"Variable","name":{"kind":"Name","value":"id"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"read"}}]}}]}}]} as unknown as DocumentNode<MarkNotificationAsReadMutation, MarkNotificationAsReadMutationVariables>;
+export const MarkAllNotificationsAsReadDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"MarkAllNotificationsAsRead"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"markAllNotificationsAsRead"}}]}}]} as unknown as DocumentNode<MarkAllNotificationsAsReadMutation, MarkAllNotificationsAsReadMutationVariables>;
+export const NotificationAddedDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"subscription","name":{"kind":"Name","value":"NotificationAdded"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"notificationAdded"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"createdAt"}},{"kind":"Field","name":{"kind":"Name","value":"read"}},{"kind":"Field","name":{"kind":"Name","value":"title"}},{"kind":"Field","name":{"kind":"Name","value":"message"}},{"kind":"Field","name":{"kind":"Name","value":"type"}},{"kind":"Field","name":{"kind":"Name","value":"userId"}}]}}]}}]} as unknown as DocumentNode<NotificationAddedSubscription, NotificationAddedSubscriptionVariables>;

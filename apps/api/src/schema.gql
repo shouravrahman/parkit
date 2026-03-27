@@ -588,6 +588,24 @@ type BookingTimeline {
   managerId: String
 }
 
+type Notification {
+  id: Int!
+  createdAt: DateTime!
+  read: Boolean!
+  title: String!
+  message: String!
+  type: NotificationType!
+  userId: String!
+}
+
+enum NotificationType {
+  BOOKING_CONFIRMED
+  BOOKING_STATUS_UPDATED
+  VALET_ASSIGNED
+  VERIFICATION_UPDATED
+  NEW_BOOKING
+}
+
 type Review {
   id: Float!
   createdAt: DateTime!
@@ -637,6 +655,8 @@ type Query {
   bookingsForGarage(where: BookingWhereInput, orderBy: [BookingOrderByWithRelationInput!], cursor: BookingWhereUniqueInput, take: Float, skip: Float, distinct: [BookingScalarFieldEnum!]): [Booking!]!
   bookingsCount(where: BookingWhereInput): AggregateCountOutput!
   booking(where: BookingWhereUniqueInput!): Booking!
+  myNotifications: [Notification!]!
+  myUnreadNotificationsCount: Int!
   valetAssignments(where: ValetAssignmentWhereInput, orderBy: [ValetAssignmentOrderByWithRelationInput!], cursor: ValetAssignmentWhereUniqueInput, take: Float, skip: Float, distinct: [ValetAssignmentScalarFieldEnum!]): [ValetAssignment!]!
   valetAssignment(where: ValetAssignmentWhereUniqueInput!): ValetAssignment!
   bookingTimelines(where: BookingTimelineWhereInput, orderBy: [BookingTimelineOrderByWithRelationInput!], cursor: BookingTimelineWhereUniqueInput, take: Float, skip: Float, distinct: [BookingTimelineScalarFieldEnum!]): [BookingTimeline!]!
@@ -1033,6 +1053,8 @@ type Mutation {
   updateBooking(updateBookingInput: UpdateBookingInput!): Booking!
   removeBooking(where: BookingWhereUniqueInput!): Booking!
   updateBookingStatus(bookingId: Float!, status: String!): Booking!
+  markNotificationAsRead(id: Int!): Notification!
+  markAllNotificationsAsRead: Boolean!
   createValetAssignment(createValetAssignmentInput: CreateValetAssignmentInput!): ValetAssignment!
   updateValetAssignment(updateValetAssignmentInput: UpdateValetAssignmentInput!): ValetAssignment!
   removeValetAssignment(where: ValetAssignmentWhereUniqueInput!): ValetAssignment!
@@ -1281,4 +1303,5 @@ input UpdateVerificationInput {
 
 type Subscription {
   slotAvailabilityChanged(garageId: Float!): SlotAvailabilityUpdate!
+  notificationAdded: Notification!
 }

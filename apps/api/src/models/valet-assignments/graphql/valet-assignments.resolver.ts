@@ -19,22 +19,47 @@ import { GetUserType } from 'src/common/types'
 import { AllowAuthenticated, GetUser } from 'src/common/auth/auth.decorator'
 import { PrismaService } from 'src/common/prisma/prisma.service'
 import { Valet } from 'src/models/valets/graphql/entity/valet.entity'
+import { NotificationsService } from 'src/models/notifications/graphql/notifications.service'
+import { NotificationType } from '@prisma/client'
 
 @Resolver(() => ValetAssignment)
 export class ValetAssignmentsResolver {
   constructor(
     private readonly valetAssignmentsService: ValetAssignmentsService,
     private readonly prisma: PrismaService,
-  ) {}
+    private readonly notificationsService: NotificationsService,
+  ) { }
 
   @AllowAuthenticated()
   @Mutation(() => ValetAssignment)
-  createValetAssignment(
+  async createValetAssignment(
     @Args('createValetAssignmentInput') args: CreateValetAssignmentInput,
     @GetUser() user: GetUserType,
   ) {
     checkRowLevelPermission(user, [args.pickupValetId, args.returnValetId])
-    return this.valetAssignmentsService.create(args)
+    const assignment = await this.valetAssignmentsService.create(args)
+
+    // Notify valets
+    try {
+      if (args.pickupValetId) {
+        await this.notificationsService.create({
+          userId: args.pickupValetId,
+          title: 'New Pickup Job',
+          message: `You have been assigned a pickup for booking #${args.bookingId}.`,
+          type: NotificationType.VALET_ASSIGNED,
+        })
+      }
+      if (args.returnValetId && args.returnValetId !== args.pickupValetId) {
+        await this.notificationsService.create({
+          userId: args.returnValetId,
+          title: 'New Return Job',
+          message: `You have been assigned a return for booking #${args.bookingId}.`,
+          type: NotificationType.VALET_ASSIGNED,
+        })
+      }
+    } catch { }
+
+    return assignment
   }
 
   @Query(() => [ValetAssignment], { name: 'valetAssignments' })
@@ -79,21 +104,13 @@ export class ValetAssignmentsResolver {
 
   @ResolveField(() => Valet, { nullable: true })
   pickupValet(@Parent() parent: ValetAssignment) {
-    if (!parent.pickupValetId) {
-      return null
-    }
-    return this.prisma.valet.findUnique({
-      where: { uid: parent.pickupValetId },
-    })
+    if (!parent.pickupValetId) return null
+    return this.prisma.valet.findUnique({ where: { uid: parent.pickupValetId } })
   }
 
   @ResolveField(() => Valet, { nullable: true })
   returnValet(@Parent() parent: ValetAssignment) {
-    if (!parent.returnValetId) {
-      return null
-    }
-    return this.prisma.valet.findUnique({
-      where: { uid: parent.returnValetId },
-    })
+    if (!parent.returnValetId) return null
+    return this.prisma.valet.findUnique({ where: { uid: parent.returnValetId } })
   }
 }

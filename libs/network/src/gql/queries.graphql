@@ -533,3 +533,41 @@ subscription SlotAvailabilityChanged($garageId: Float!) {
     }
   }
 }
+
+query MyNotifications {
+  myNotifications {
+    id
+    createdAt
+    read
+    title
+    message
+    type
+  }
+}
+
+query MyUnreadNotificationsCount {
+  myUnreadNotificationsCount
+}
+
+mutation MarkNotificationAsRead($id: Int!) {
+  markNotificationAsRead(id: $id) {
+    id
+    read
+  }
+}
+
+mutation MarkAllNotificationsAsRead {
+  markAllNotificationsAsRead
+}
+
+subscription NotificationAdded {
+  notificationAdded {
+    id
+    createdAt
+    read
+    title
+    message
+    type
+    userId
+  }
+}
