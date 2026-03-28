@@ -34,9 +34,9 @@ export class BookingWorkerService implements OnModuleInit, OnModuleDestroy {
               return
             }
 
-            // If assignment already exists, we are idempotent and can stop.
-            if (booking.ValetAssignment) {
-              console.log('Booking already has ValetAssignment, skipping', bookingId)
+            // If assignment already exists with an allocated valet, we are idempotent and can stop.
+            if (booking.ValetAssignment?.pickupValetId || booking.ValetAssignment?.returnValetId) {
+              console.log('Booking already assigned to valet, skipping', bookingId)
               return
             }
 
@@ -76,14 +76,21 @@ export class BookingWorkerService implements OnModuleInit, OnModuleDestroy {
               return
             }
 
-            // Create ValetAssignment and update booking status + timeline atomically.
+            // Update or Create ValetAssignment and update booking status + timeline atomically.
             try {
-              await tx.valetAssignment.create({
-                data: {
-                  bookingId: booking.id,
-                  pickupValetId: chosen.uid,
-                },
-              })
+              if (booking.ValetAssignment) {
+                await tx.valetAssignment.update({
+                  where: { bookingId: booking.id },
+                  data: { pickupValetId: chosen.uid },
+                })
+              } else {
+                await tx.valetAssignment.create({
+                  data: {
+                    bookingId: booking.id,
+                    pickupValetId: chosen.uid,
+                  },
+                })
+              }
             } catch (e: any) {
               // If another worker created the assignment concurrently, abort gracefully.
               const already = await tx.valetAssignment.findUnique({ where: { bookingId: booking.id } })
