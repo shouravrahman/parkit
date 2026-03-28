@@ -17,6 +17,7 @@ import { AllowAuthenticated, GetUser } from 'src/common/auth/auth.decorator'
 import { PrismaService } from 'src/common/prisma/prisma.service'
 import { Manager } from 'src/models/managers/graphql/entity/manager.entity'
 import { Garage } from 'src/models/garages/graphql/entity/garage.entity'
+import { Valet } from 'src/models/valets/graphql/entity/valet.entity'
 
 @Resolver(() => Company)
 export class CompaniesResolver {
@@ -98,5 +99,10 @@ export class CompaniesResolver {
   @ResolveField(() => [Manager])
   managers(@Parent() company: Company) {
     return this.prisma.manager.findMany({ where: { companyId: company.id } })
+  }
+
+  @ResolveField(() => [Valet])
+  valets(@Parent() company: Company) {
+    return this.prisma.valet.findMany({ where: { companyId: company.id } })
   }
 }

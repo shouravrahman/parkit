@@ -6,7 +6,7 @@ import { Pagination } from '@mui/material'
 interface ShowDataProps {
   error?: string
   loading?: boolean
-  pagination: {
+  pagination?: {
     setSkip: (skip: number) => void
     setTake: (take: number) => void
     skip: number
@@ -27,16 +27,16 @@ export const ShowData = ({
   children,
   childrenClassName = 'grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3',
 }: ShowDataProps) => {
-  const { setSkip, setTake, skip, take, resultCount, totalCount } = pagination
+  const { setSkip, setTake, skip, take, resultCount, totalCount } = pagination || {}
 
   const handlePageChange = (
     event: React.ChangeEvent<unknown>,
     page: number,
   ) => {
-    setSkip((page - 1) * take)
+    if (setSkip && take) setSkip((page - 1) * take)
   }
 
-  const totalPages = Math.ceil((totalCount || 0) / take)
+  const totalPages = Math.ceil((totalCount || 0) / (take || 12))
 
   return (
     <div>
@@ -52,15 +52,17 @@ export const ShowData = ({
       )}
 
       {!error && <div className={childrenClassName}>{children}</div>}
-      <div className="flex justify-center mt-8">
-        <Pagination
-          count={totalPages}
-          showFirstButton
-          showLastButton
-          page={skip / take + 1}
-          onChange={handlePageChange}
-        />
-      </div>
+      {pagination && (
+        <div className="flex justify-center mt-8">
+          <Pagination
+            count={totalPages}
+            showFirstButton
+            showLastButton
+            page={(skip || 0) / (take || 12) + 1}
+            onChange={handlePageChange}
+          />
+        </div>
+      )}
     </div>
   )
 }

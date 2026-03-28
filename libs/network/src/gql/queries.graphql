@@ -42,6 +42,34 @@ query Companies(
   }
 }
 
+query Company($where: CompanyWhereUniqueInput!) {
+  company(where: $where) {
+    id
+    createdAt
+    updatedAt
+    displayName
+    description
+    garages {
+      id
+      displayName
+      address {
+        address
+        lat
+        lng
+      }
+    }
+    managers {
+      uid
+      displayName
+    }
+    valets {
+      uid
+      displayName
+      image
+    }
+  }
+}
+
 mutation Login($loginInput: LoginInput!) {
   login(loginInput: $loginInput) {
     token
@@ -157,6 +185,35 @@ query Garages(
 
   garagesCount(where: $where) {
     count
+  }
+}
+
+query Garage($where: GarageWhereUniqueInput!) {
+  garage(where: $where) {
+    id
+    displayName
+    description
+    images
+    verification {
+      verified
+      createdAt
+      updatedAt
+      adminId
+    }
+    address {
+      id
+      lat
+      lng
+      address
+    }
+    slotCounts {
+      type
+      count
+    }
+    company {
+      id
+      displayName
+    }
   }
 }
 
