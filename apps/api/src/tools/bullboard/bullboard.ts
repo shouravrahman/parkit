@@ -5,6 +5,7 @@ import { Queue } from 'bullmq'
 import * as jwt from 'jsonwebtoken'
 import { PrismaClient } from '@prisma/client'
 import { getRedisConnectionOptions } from 'src/common/queue/utils'
+import Redis from 'ioredis'
 
 const prisma = new PrismaClient()
 
@@ -15,7 +16,11 @@ export function setupBullBoard(server: any) {
 
   const REDIS_URL = process.env.REDIS_URL || 'redis://127.0.0.1:6379'
   getRedisConnectionOptions(REDIS_URL).then((connectionOptions) => {
-    const bookingQueue = new Queue('booking:postprocess', { connection: connectionOptions as any })
+    const connection = new Redis((connectionOptions as any).url, {
+      maxRetriesPerRequest: null,
+      tls: (connectionOptions as any).tls,
+    })
+    const bookingQueue = new Queue('booking:postprocess', { connection })
     createBullBoard({ queues: [new BullMQAdapter(bookingQueue)], serverAdapter })
   })
 

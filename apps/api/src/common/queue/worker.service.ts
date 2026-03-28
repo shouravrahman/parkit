@@ -4,6 +4,7 @@ import { ConfigService } from '@nestjs/config'
 import { PrismaService } from 'src/common/prisma/prisma.service'
 import { BOOKING_QUEUE_NAME } from './queue.constants'
 import { getRedisConnectionOptions } from './utils'
+import Redis from 'ioredis'
 
 @Injectable()
 export class BookingWorkerService implements OnModuleInit, OnModuleDestroy {
@@ -64,7 +65,11 @@ export class BookingWorkerService implements OnModuleInit, OnModuleDestroy {
             if (!chosen) {
               // No available valets now. Requeue the job with a delay so operator can add valets or load reduces.
               console.warn('No valets available, requeueing job with delay', bookingId)
-              const q = new Queue('booking:postprocess', { connection: connectionOptions as any })
+              const connection = new Redis((connectionOptions as any).url, {
+                maxRetriesPerRequest: null,
+                tls: (connectionOptions as any).tls,
+              })
+              const q = new Queue('booking:postprocess', { connection })
               // small delay (e.g., 30s). If many retries are needed, BullMQ backoff/retries can be configured when scheduling.
               await q.add(`retry-${bookingId}-${Date.now()}`, { bookingId }, { delay: 30_000 })
               await q.close()
@@ -107,7 +112,12 @@ export class BookingWorkerService implements OnModuleInit, OnModuleDestroy {
           throw err
         }
       },
-      { connection: connectionOptions as any },
+      {
+        connection: new Redis((connectionOptions as any).url, {
+          maxRetriesPerRequest: null,
+          tls: (connectionOptions as any).tls,
+        }),
+      },
     )
 
     this.worker.on('completed', (job) => console.log('Job completed', job.id))
