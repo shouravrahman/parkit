@@ -2,6 +2,7 @@ import { Injectable, OnModuleInit, OnModuleDestroy } from '@nestjs/common'
 import { Worker, Queue } from 'bullmq'
 import { ConfigService } from '@nestjs/config'
 import { PrismaService } from 'src/common/prisma/prisma.service'
+import { BOOKING_QUEUE_NAME } from './queue.constants'
 
 @Injectable()
 export class BookingWorkerService implements OnModuleInit, OnModuleDestroy {
@@ -12,7 +13,7 @@ export class BookingWorkerService implements OnModuleInit, OnModuleDestroy {
   onModuleInit() {
     const REDIS_URL = this.config.get<string>('REDIS_URL') || 'redis://127.0.0.1:6379'
     this.worker = new Worker(
-      'booking:postprocess',
+      BOOKING_QUEUE_NAME,
       async (job) => {
         const { bookingId } = job.data as { bookingId: number }
         console.log('Worker processing booking', bookingId)
