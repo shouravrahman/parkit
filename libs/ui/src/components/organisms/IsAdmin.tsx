@@ -3,22 +3,47 @@ import { AdminMeDocument } from '@parkit/network/src/gql/generated'
 import { useQuery } from '@apollo/client'
 import { LoaderPanel } from '../molecules/Loader'
 import { AlertSection } from '../molecules/AlertSection'
-import { ReactNode } from 'react'
+import { ReactNode, useEffect } from 'react'
 import { useSession } from 'next-auth/react'
+import { useRouter } from 'next/navigation'
 
 export const IsAdmin = ({ children }: { children: ReactNode }) => {
-  const { data, loading } = useQuery(AdminMeDocument, { fetchPolicy: 'cache-first' })
+  const { data: session, status } = useSession()
+  const { data, loading, error } = useQuery(AdminMeDocument, {
+    fetchPolicy: 'cache-first',
+    skip: status !== 'authenticated',
+  })
+  const router = useRouter()
 
-  if (loading) {
-    return <LoaderPanel text="Loading company..." />
+  useEffect(() => {
+    if (status === 'unauthenticated') {
+      router.push('/login')
+    }
+  }, [status, router])
+
+  if (status === 'loading' || (status === 'authenticated' && loading)) {
+    return <LoaderPanel text="Verifying admin status..." />
   }
 
-  if (!data?.adminMe?.uid)
+  if (status === 'unauthenticated') {
+    return null
+  }
+
+  if (error) {
     return (
-      <AlertSection>
-        <div>You are not an admin.</div>
+      <AlertSection title="Authorization Error">
+        <div>{error.message}</div>
       </AlertSection>
     )
+  }
+
+  if (!data?.adminMe?.uid) {
+    return (
+      <AlertSection title="Access Denied">
+        <div>You do not have administrative privileges.</div>
+      </AlertSection>
+    )
+  }
 
   return <>{children}</>
 }

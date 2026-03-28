@@ -51,7 +51,7 @@ export const ShowData = ({
         </AlertSection>
       )}
 
-      <div className={childrenClassName}>{children}</div>
+      {!error && <div className={childrenClassName}>{children}</div>}
       <div className="flex justify-center mt-8">
         <Pagination
           count={totalPages}
