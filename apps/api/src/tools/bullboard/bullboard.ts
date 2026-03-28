@@ -45,7 +45,9 @@ export function setupBullBoard(server: any) {
         token = 
           cookies['accessToken'] || 
           cookies['__Secure-next-auth.session-token'] || 
+          cookies['__Secure-next-auth.admin.session-token'] || 
           cookies['next-auth.session-token'] || 
+          cookies['next-auth.admin.session-token'] || 
           cookies['nextAuthToken']
       }
 
