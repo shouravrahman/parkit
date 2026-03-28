@@ -33,7 +33,7 @@ export const Panel = ({ children, className, position }: MapPanelTypes) => {
   }
   return (
     <div
-      className={`absolute space-y-2 p-2 ${classes[position!]} ${className}`}
+      className={`absolute space-y-2 p-2 z-[1000] ${classes[position!]} ${className}`}
     >
       {children}
     </div>

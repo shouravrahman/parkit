@@ -22,8 +22,9 @@ export const Directions = ({
   const prevOriginRef = useRef<LatLng | undefined>(undefined)
   const prevDestinationRef = useRef<Partial<LatLng> | undefined>(undefined)
 
-  const [originDebounced] = useDebounce(origin, 400)
-  const [destinationDebounced] = useDebounce(destination, 400)
+  const [originDebounced, { debouncing: d1 }] = useDebounce(origin, 400)
+  const [destinationDebounced, { debouncing: d2 }] = useDebounce(destination, 400)
+  const isDebouncing = d1 || d2
 
   useEffect(() => {
     if (
@@ -82,7 +83,7 @@ export const Directions = ({
   return (
     <Polyline
       positions={positions}
-      pathOptions={{ color, weight: 4, opacity: 0.85 }}
+      pathOptions={{ color, weight: 4, opacity: isDebouncing ? 0.3 : 0.85 }}
     />
   )
 }
