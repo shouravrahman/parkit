@@ -1,87 +1,101 @@
+import 'dotenv/config'
 import { Worker } from 'bullmq'
 import { PrismaClient, BookingStatus } from '@prisma/client'
+import Redis from 'ioredis'
+import { getRedisConnectionOptions } from '../common/queue/utils'
 
-const REDIS_URL = process.env.REDIS_URL || 'redis://127.0.0.1:6379'
+async function startWorker() {
+  const REDIS_URL = process.env.REDIS_URL || 'redis://127.0.0.1:6379'
+  const connectionOptions = await getRedisConnectionOptions(REDIS_URL)
 
-const prisma = new PrismaClient()
+  const connection = new Redis(connectionOptions.url, {
+    maxRetriesPerRequest: null,
+    tls: (connectionOptions as any).tls,
+  })
 
-const worker = new Worker(
-  'booking:postprocess',
-  async (job) => {
-    const { bookingId } = job.data as { bookingId: number }
-    console.log('Processing booking postprocess job for', bookingId)
+  const prisma = new PrismaClient()
 
-    const booking = await prisma.booking.findUnique({
-      where: { id: bookingId },
-      include: { ValetAssignment: true },
-    })
+  const worker = new Worker(
+    'booking:postprocess',
+    async (job) => {
+      const { bookingId } = job.data as { bookingId: number }
+      console.log('Processing booking postprocess job for', bookingId)
 
-    if (!booking) {
-      console.warn('Booking not found, skipping', bookingId)
-      return
-    }
+      const booking = await prisma.booking.findUnique({
+        where: { id: bookingId },
+        include: { ValetAssignment: true },
+      })
 
-    // Idempotency check: already assigned?
-    if (booking.ValetAssignment) {
-      console.log('Booking already has an assignment, skipping', bookingId)
-      return
-    }
+      if (!booking) {
+        console.warn('Booking not found, skipping', bookingId)
+        return
+      }
 
-    const companyId = booking.companyId
-    if (!companyId) {
-      console.error('Booking has no companyId, cannot assign valet', bookingId)
-      return
-    }
+      // Idempotency check: already assigned?
+      if (booking.ValetAssignment) {
+        console.log('Booking already has an assignment, skipping', bookingId)
+        return
+      }
 
-    // Find a valet in the same company (simple pick for now)
-    const valet = await prisma.valet.findFirst({
-      where: { companyId },
-    })
+      const companyId = booking.companyId
+      if (!companyId) {
+        console.error('Booking has no companyId, cannot assign valet', bookingId)
+        return
+      }
 
-    if (!valet) {
-      console.warn('No valet available for company', companyId)
-      // in production, you might want to requeue with delay or notify admin
-      return
-    }
+      // Find a valet in the same company (simple pick for now)
+      const valet = await prisma.valet.findFirst({
+        where: { companyId },
+      })
 
-    // Atomically create assignment and update status
-    await prisma.$transaction([
-      prisma.valetAssignment.create({
-        data: {
-          bookingId: booking.id,
-          pickupValetId: valet.uid,
-          companyId: companyId,
-        },
-      }),
-      prisma.booking.update({
-        where: { id: booking.id },
-        data: { status: BookingStatus.VALET_ASSIGNED_FOR_CHECK_IN },
-      }),
-      prisma.bookingTimeline.create({
-        data: {
-          bookingId: booking.id,
-          status: BookingStatus.VALET_ASSIGNED_FOR_CHECK_IN,
-          valetId: valet.uid,
-          companyId: companyId,
-        },
-      }),
-    ])
+      if (!valet) {
+        console.warn('No valet available for company', companyId)
+        // in production, you might want to requeue with delay or notify admin
+        return
+      }
 
-    console.log(`Booking ${bookingId} successfully assigned to valet ${valet.uid}`)
-  },
-  {
-    connection: {
-      url: REDIS_URL,
-    } as any, // BullMQ Worker options accept a connection object.
-  },
-)
+      // Atomically create assignment and update status
+      await prisma.$transaction([
+        prisma.valetAssignment.create({
+          data: {
+            bookingId: booking.id,
+            pickupValetId: valet.uid,
+            companyId: companyId,
+          },
+        }),
+        prisma.booking.update({
+          where: { id: booking.id },
+          data: { status: BookingStatus.VALET_ASSIGNED_FOR_CHECK_IN },
+        }),
+        prisma.bookingTimeline.create({
+          data: {
+            bookingId: booking.id,
+            status: BookingStatus.VALET_ASSIGNED_FOR_CHECK_IN,
+            valetId: valet.uid,
+            companyId: companyId,
+          },
+        }),
+      ])
 
-worker.on('completed', (job) => {
-  console.log(`Job ${job.id} completed`)
+      console.log(`Booking ${bookingId} successfully assigned to valet ${valet.uid}`)
+    },
+    {
+      connection,
+    },
+  )
+
+  worker.on('completed', (job) => {
+    console.log(`Job ${job.id} completed`)
+  })
+
+  worker.on('failed', (job, err) => {
+    console.error(`Job ${job?.id} failed:`, err)
+  })
+
+  console.log('Booking worker started, listening on booking:postprocess')
+}
+
+startWorker().catch((err) => {
+  console.error('Failed to start worker:', err)
+  process.exit(1)
 })
-
-worker.on('failed', (job, err) => {
-  console.error(`Job ${job?.id} failed:`, err)
-})
-
-console.log('Booking worker started, listening on booking:postprocess')

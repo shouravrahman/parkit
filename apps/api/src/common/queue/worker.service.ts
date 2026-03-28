@@ -3,6 +3,7 @@ import { Worker, Queue } from 'bullmq'
 import { ConfigService } from '@nestjs/config'
 import { PrismaService } from 'src/common/prisma/prisma.service'
 import { BOOKING_QUEUE_NAME } from './queue.constants'
+import { getRedisConnectionOptions } from './utils'
 
 @Injectable()
 export class BookingWorkerService implements OnModuleInit, OnModuleDestroy {
@@ -10,9 +11,10 @@ export class BookingWorkerService implements OnModuleInit, OnModuleDestroy {
 
   constructor(private config: ConfigService, private prisma: PrismaService) {}
 
-  onModuleInit() {
+  async onModuleInit() {
     const REDIS_URL = this.config.get<string>('REDIS_URL') || process.env.REDIS_URL || 'redis://127.0.0.1:6379'
-    console.log('Initialize Worker with Redis URL (masked):', REDIS_URL.replace(/:[^:@]+@/, ':****@'))
+    const connectionOptions = await getRedisConnectionOptions(REDIS_URL)
+
     this.worker = new Worker(
       BOOKING_QUEUE_NAME,
       async (job) => {
@@ -62,7 +64,7 @@ export class BookingWorkerService implements OnModuleInit, OnModuleDestroy {
             if (!chosen) {
               // No available valets now. Requeue the job with a delay so operator can add valets or load reduces.
               console.warn('No valets available, requeueing job with delay', bookingId)
-              const q = new Queue('booking:postprocess', { connection: REDIS_URL } as any)
+              const q = new Queue('booking:postprocess', { connection: connectionOptions as any })
               // small delay (e.g., 30s). If many retries are needed, BullMQ backoff/retries can be configured when scheduling.
               await q.add(`retry-${bookingId}-${Date.now()}`, { bookingId }, { delay: 30_000 })
               await q.close()
@@ -105,7 +107,7 @@ export class BookingWorkerService implements OnModuleInit, OnModuleDestroy {
           throw err
         }
       },
-      { connection: REDIS_URL } as any,
+      { connection: connectionOptions as any },
     )
 
     this.worker.on('completed', (job) => console.log('Job completed', job.id))

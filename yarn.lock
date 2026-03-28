@@ -3894,7 +3894,7 @@ __metadata:
     "@nestjs/schematics": "npm:^9.0.0"
     "@nestjs/swagger": "npm:^7.3.1"
     "@nestjs/testing": "npm:^9.0.0"
-    "@prisma/client": "npm:5.11.0"
+    "@prisma/client": "npm:5.13.0"
     "@types/express": "npm:^4.17.13"
     "@types/jest": "npm:29.5.0"
     "@types/node": "npm:18.15.11"
@@ -3916,7 +3916,7 @@ __metadata:
     passport: "npm:^0.6.0"
     passport-jwt: "npm:^4.0.1"
     prettier: "npm:^2.3.2"
-    prisma: "npm:^5.11.0"
+    prisma: "npm:5.13.0"
     reflect-metadata: "npm:^0.1.13"
     resend: "npm:^6.9.4"
     rxjs: "npm:^7.2.0"
@@ -4143,15 +4143,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@prisma/client@npm:5.11.0":
-  version: 5.11.0
-  resolution: "@prisma/client@npm:5.11.0"
+"@prisma/client@npm:5.13.0":
+  version: 5.13.0
+  resolution: "@prisma/client@npm:5.13.0"
   peerDependencies:
     prisma: "*"
   peerDependenciesMeta:
     prisma:
       optional: true
-  checksum: 10c0/4c314e5b9d0ae880cd048cfa224a017d5d044a850efadf189e02937abc09a24de764d62738cea7016c8af31dfa18069d5a0f7c4ac99a0b6e454987d5c3afbbfe
+  checksum: 10c0/19a0d08237fd7bae6009417476dc3588df77102131e3c8df01a024e5dee78417a8079d5a3dbbb3ffee7b4117067a9c10912f5084a3a40884de8fde5314fb1227
   languageName: node
   linkType: hard
 
@@ -15521,7 +15521,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"prisma@npm:^5.11.0":
+"prisma@npm:5.13.0":
   version: 5.13.0
   resolution: "prisma@npm:5.13.0"
   dependencies:

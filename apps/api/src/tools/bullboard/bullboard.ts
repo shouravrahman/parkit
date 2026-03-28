@@ -4,6 +4,7 @@ import { BullMQAdapter } from '@bull-board/api/bullMQAdapter'
 import { Queue } from 'bullmq'
 import * as jwt from 'jsonwebtoken'
 import { PrismaClient } from '@prisma/client'
+import { getRedisConnectionOptions } from 'src/common/queue/utils'
 
 const prisma = new PrismaClient()
 
@@ -13,8 +14,10 @@ export function setupBullBoard(server: any) {
   serverAdapter.setBasePath('/admin/queues')
 
   const REDIS_URL = process.env.REDIS_URL || 'redis://127.0.0.1:6379'
-  const bookingQueue = new Queue('booking:postprocess', { connection: REDIS_URL } as any)
-  createBullBoard({ queues: [new BullMQAdapter(bookingQueue)], serverAdapter })
+  getRedisConnectionOptions(REDIS_URL).then((connectionOptions) => {
+    const bookingQueue = new Queue('booking:postprocess', { connection: connectionOptions as any })
+    createBullBoard({ queues: [new BullMQAdapter(bookingQueue)], serverAdapter })
+  })
 
   // admin auth middleware using JWT + DB role check
   const adminAuth = async (req: any, res: any, next: any) => {
