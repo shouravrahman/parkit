@@ -17,12 +17,16 @@ export class CompaniesService {
       data: {
         description,
         displayName,
-        Managers: {
-          create: {
-            displayName: managerName,
-            uid: managerId,
-          },
-        },
+        ...(managerId
+          ? {
+              Managers: {
+                create: {
+                  displayName: managerName,
+                  uid: managerId,
+                },
+              },
+            }
+          : {}),
       },
     })
   }

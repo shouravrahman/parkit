@@ -34,4 +34,6 @@ export class Booking implements RestrictProperties<Booking, BookingType> {
   slotId: number
   @Field()
   customerId: string
+  @Field({ nullable: true })
+  companyId: number
 }

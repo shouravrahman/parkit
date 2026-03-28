@@ -25,4 +25,6 @@ export class ValetAssignment implements RestrictProperties<
   pickupValetId: string
   @Field({ nullable: true })
   returnValetId: string
+  @Field()
+  companyId: number
 }

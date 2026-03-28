@@ -21,10 +21,10 @@ const nextStatus: Record<string, { label: string; status: string } | null> = {
   BOOKED: { label: 'Check In', status: 'CHECKED_IN' },
   CHECKED_IN: { label: 'Check Out', status: 'CHECKED_OUT' },
   VALET_PICKED_UP: { label: 'Check In', status: 'CHECKED_IN' },
-  VALET_RETURNED: null,
+  VALET_ASSIGNED_FOR_CHECK_IN: { label: 'Pick Up', status: 'VALET_PICKED_UP' },
+  VALET_ASSIGNED_FOR_CHECK_OUT: { label: 'Return', status: 'VALET_RETURNED' },
+  VALET_RETURNED: { label: 'Check Out', status: 'CHECKED_OUT' },
   CHECKED_OUT: null,
-  VALET_ASSIGNED_FOR_CHECK_IN: null,
-  VALET_ASSIGNED_FOR_CHECK_OUT: null,
 }
 
 const statusColor: Record<string, string> = {
@@ -66,6 +66,20 @@ export const ManageBookingCard = ({ booking }: IManageBookingCardProps) => {
       <TitleStrongValue title="Code">
         <Reveal showIntruction={false} secret={booking.passcode || ''} />
       </TitleStrongValue>
+
+      {booking.valetAssignment?.pickupValet && (
+        <div className="flex items-center gap-3 p-2 bg-white/5 rounded-lg border border-white/5">
+          <img
+            src={booking.valetAssignment.pickupValet.image || '/default-avatar.png'}
+            alt=""
+            className="w-10 h-10 rounded-full object-cover border border-white/10"
+          />
+          <div>
+            <p className="text-[10px] text-gray-500 uppercase font-bold tracking-tight">Assigned Valet</p>
+            <p className="text-sm font-medium text-white">{booking.valetAssignment.pickupValet.displayName}</p>
+          </div>
+        </div>
+      )}
 
       {/* Status + action */}
       <div className="flex items-center justify-between gap-2 pt-1 border-t border-white/5">

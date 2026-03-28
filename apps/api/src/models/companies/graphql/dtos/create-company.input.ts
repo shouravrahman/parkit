@@ -8,8 +8,8 @@ export class CreateCompanyInput extends PickType(
   ['displayName', 'description'],
   InputType,
 ) {
-  @Field()
-  managerId: string
+  @Field({ nullable: true })
+  managerId?: string
   @Field({ nullable: true })
   managerName?: string
 }

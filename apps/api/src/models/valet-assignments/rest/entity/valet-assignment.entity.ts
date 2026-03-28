@@ -17,4 +17,5 @@ export class ValetAssignmentEntity implements RestrictProperties<
   returnLng: number
   pickupValetId: string
   returnValetId: string
+  companyId: number
 }

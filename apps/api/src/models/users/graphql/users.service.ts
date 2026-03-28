@@ -15,6 +15,7 @@ import { UpdateUserInput } from './dtos/update-user.input'
 import * as bcrypt from 'bcryptjs'
 import { v4 as uuid } from 'uuid'
 import { JwtService } from '@nestjs/jwt'
+import * as jwt from 'jsonwebtoken'
 
 @Injectable()
 export class UsersService {
@@ -103,12 +104,9 @@ export class UsersService {
       throw new UnauthorizedException('Invalid email or password.')
     }
 
-    const jwtToken = this.jwtService.sign(
-      { uid: user.uid },
-      {
-        algorithm: 'HS256',
-      },
-    )
+    const secret = process.env.JWT_SECRET
+    if (!secret) throw new Error('Missing JWT_SECRET environment variable')
+    const jwtToken = jwt.sign({ uid: user.uid }, secret, { algorithm: 'HS256' })
 
     return { token: jwtToken, user }
   }

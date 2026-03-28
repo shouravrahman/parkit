@@ -9,6 +9,9 @@ import {
 import { GarageListRelationFilter } from 'src/models/garages/graphql/dtos/where.args'
 import { ManagerListRelationFilter } from 'src/models/managers/graphql/dtos/where.args'
 import { ValetListRelationFilter } from 'src/models/valets/graphql/dtos/where.args'
+import { BookingListRelationFilter } from 'src/models/bookings/graphql/dtos/where.args'
+import { ValetAssignmentListRelationFilter } from 'src/models/valet-assignments/graphql/dtos/where.args'
+import { BookingTimelineListRelationFilter } from 'src/models/booking-timelines/graphql/dtos/where.args'
 
 @InputType()
 export class CompanyWhereUniqueInput {
@@ -37,6 +40,14 @@ export class CompanyWhereInputStrict implements RestrictProperties<
   Managers: ManagerListRelationFilter
   @Field(() => ValetListRelationFilter, { nullable: true })
   Valets: ValetListRelationFilter
+  @Field(() => BookingListRelationFilter, { nullable: true })
+  Booking: BookingListRelationFilter
+  @Field(() => ValetAssignmentListRelationFilter, { nullable: true })
+  ValetAssignment: ValetAssignmentListRelationFilter
+  @Field(() => BookingTimelineListRelationFilter, { nullable: true })
+  BookingTimeline: BookingTimelineListRelationFilter
+  @Field(() => StringFilter, { nullable: true }) // Invite relation filter would go here if it existed
+  Invite: any 
 
   AND: CompanyWhereInput[]
   OR: CompanyWhereInput[]

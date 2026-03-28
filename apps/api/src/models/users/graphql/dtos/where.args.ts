@@ -20,7 +20,7 @@ export class UserWhereInputStrict implements RestrictProperties<
   UserWhereInputStrict,
   Omit<
     Prisma.UserWhereInput,
-    'Credentials' | 'AuthProvider' | 'Admin' | 'image' | 'Notifications'
+    'Credentials' | 'AuthProvider' | 'Admin' | 'image' | 'Notifications' | 'RefreshToken'
   >
 > {
   @Field(() => CustomerRelationFilter, { nullable: true })

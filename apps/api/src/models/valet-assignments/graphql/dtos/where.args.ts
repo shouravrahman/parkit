@@ -9,6 +9,7 @@ import {
 } from 'src/common/dtos/common.input'
 import { BookingRelationFilter } from 'src/models/bookings/graphql/dtos/where.args'
 import { ValetRelationFilter } from 'src/models/valets/graphql/dtos/where.args'
+import { CompanyRelationFilter } from 'src/models/companies/graphql/dtos/where.args'
 
 @InputType()
 export class ValetAssignmentWhereUniqueInput {
@@ -45,6 +46,10 @@ export class ValetAssignmentWhereInputStrict implements RestrictProperties<
   ReturnValet: ValetRelationFilter
   @Field(() => BookingRelationFilter, { nullable: true })
   Booking: BookingRelationFilter
+  @Field(() => IntFilter, { nullable: true })
+  companyId: IntFilter
+  @Field(() => CompanyRelationFilter, { nullable: true })
+  Company: CompanyRelationFilter
 
   AND: ValetAssignmentWhereInput[]
   OR: ValetAssignmentWhereInput[]

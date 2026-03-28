@@ -23,4 +23,6 @@ export class BookingEntity implements RestrictProperties<
   status: $Enums.BookingStatus
   slotId: number
   customerId: string
+  @IsOptional()
+  companyId: number
 }

@@ -30,7 +30,7 @@ export const GarageResultsList = () => {
 
   useEffect(() => {
     if (variables) searchGarages({ variables })
-  }, [variables])
+  }, [variables, searchGarages])
 
   const garages = data?.searchGarages ?? previousData?.searchGarages ?? []
 

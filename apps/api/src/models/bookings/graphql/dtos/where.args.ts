@@ -11,6 +11,7 @@ import { BookingTimelineListRelationFilter } from 'src/models/booking-timelines/
 import { CustomerRelationFilter } from 'src/models/customers/graphql/dtos/where.args'
 import { SlotRelationFilter } from 'src/models/slots/graphql/dtos/where.args'
 import { ValetAssignmentRelationFilter } from 'src/models/valet-assignments/graphql/dtos/where.args'
+import { CompanyRelationFilter } from 'src/models/companies/graphql/dtos/where.args'
 
 @InputType()
 export class BookingWhereUniqueInput {
@@ -69,6 +70,10 @@ export class BookingWhereInputStrict implements RestrictProperties<
   Slot: SlotRelationFilter
   @Field(() => BookingTimelineListRelationFilter, { nullable: true })
   BookingTimeline: BookingTimelineListRelationFilter
+  @Field(() => IntFilter, { nullable: true })
+  companyId: IntFilter
+  @Field(() => CompanyRelationFilter, { nullable: true })
+  Company: CompanyRelationFilter
 
   AND: BookingWhereInput[]
   OR: BookingWhereInput[]

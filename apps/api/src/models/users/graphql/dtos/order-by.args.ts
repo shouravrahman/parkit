@@ -10,20 +10,29 @@ export class UserOrderByWithRelationInputStrict implements RestrictProperties<
   UserOrderByWithRelationInputStrict,
   Omit<
     Prisma.UserOrderByWithRelationInput,
-    'Credentials' | 'AuthProvider' | 'Admin' | 'image' | 'Notifications'
+    | 'Credentials'
+    | 'AuthProvider'
+    | 'Admin'
+    | 'image'
+    | 'Notifications'
+    | 'RefreshToken'
   >
 > {
+  @Field(() => Prisma.SortOrder)
+  uid: Prisma.SortOrder
+
+  @Field(() => Prisma.SortOrder)
+  createdAt: Prisma.SortOrder
+
+  @Field(() => Prisma.SortOrder)
+  updatedAt: Prisma.SortOrder
+
+  @Field(() => Prisma.SortOrder)
+  name: Prisma.SortOrder
+
   Customer: CustomerOrderByWithRelationInput
   Manager: ManagerOrderByWithRelationInput
   Valet: ValetOrderByWithRelationInput
-  @Field(() => Prisma.SortOrder)
-  uid: Prisma.SortOrder
-  @Field(() => Prisma.SortOrder)
-  createdAt: Prisma.SortOrder
-  @Field(() => Prisma.SortOrder)
-  updatedAt: Prisma.SortOrder
-  @Field(() => Prisma.SortOrder)
-  name: Prisma.SortOrder
 
   // Todo: Add below field decorator to the SortOrder properties.
   // @Field(() => Prisma.SortOrder)

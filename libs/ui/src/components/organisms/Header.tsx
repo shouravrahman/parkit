@@ -11,6 +11,7 @@ import { Button } from '../atoms/Button'
 import { useDialogState } from '@parkit/util/hooks/dialog'
 import { NavSidebar } from './NavSidebar'
 import { Menus } from './Menus'
+import { TenantSelector } from './TenantSelector'
 import dynamic from 'next/dynamic'
 const NotificationBell = dynamic(() => import('./NotificationBell').then(m => m.NotificationBell), { ssr: false })
 
@@ -37,6 +38,7 @@ export const Header = ({ type, menuItems }: IHeaderProps) => {
               <div className="flex gap-6 items-center">
                 <div className="text-sm mr-6 flex gap-3">
                   <Menus menuItems={menuItems} />
+                  {type === 'manager' ? <TenantSelector /> : null}
                   <NotificationBell />
                 </div>
 

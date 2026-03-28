@@ -19,4 +19,6 @@ export class BookingTimeline implements RestrictProperties<
   valetId: string
   @Field({ nullable: true })
   managerId: string
+  @Field({ nullable: true })
+  companyId: number
 }

@@ -20,9 +20,9 @@ type Props = {
   children?: React.ReactNode
 }
 
-const BoundsWatcher: React.FC<{ onBoundsChange?: Props['onBoundsChange'] }> = ({ onBoundsChange }) => {
-  if (!onBoundsChange) return null
-
+const BoundsWatcher: React.FC<{ onBoundsChange?: Props['onBoundsChange'] }> = ({
+  onBoundsChange,
+}) => {
   const getBounds = (m: any) => ({
     ne_lat: m.getBounds().getNorthEast().lat,
     ne_lng: m.getBounds().getNorthEast().lng,
@@ -31,13 +31,19 @@ const BoundsWatcher: React.FC<{ onBoundsChange?: Props['onBoundsChange'] }> = ({
   })
 
   const map = useMapEvents({
-    moveend: () => onBoundsChange(getBounds(map)),
-    zoomend: () => onBoundsChange(getBounds(map)),
+    moveend: () => {
+      if (onBoundsChange) onBoundsChange(getBounds(map))
+    },
+    zoomend: () => {
+      if (onBoundsChange) onBoundsChange(getBounds(map))
+    },
   })
 
   React.useEffect(() => {
-    onBoundsChange(getBounds(map))
-  }, [])
+    if (onBoundsChange) {
+      onBoundsChange(getBounds(map))
+    }
+  }, [map, onBoundsChange])
 
   return null
 }

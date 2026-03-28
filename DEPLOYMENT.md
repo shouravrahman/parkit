@@ -125,7 +125,108 @@ BOOKINGS_REDIRECT_URL=https://your-web-app.vercel.app/bookings
 
 ---
 
-## 🚀 Step 2: Deploy Frontend Apps to Vercel
+## � Step 1.5: Add Redis (for BullMQ queues)
+
+We recommend using a managed Redis with a free tier to host BullMQ. Two good options:
+
+- Upstash (serverless Redis) — free tier available, integrates well with serverless and Render.
+- Redis Cloud (Redis Enterprise) — may offer a free/essentials tier depending on region.
+
+We’ll document Upstash here (works well and has a free tier):
+
+### **Provision Upstash Redis**
+1. Go to https://console.upstash.com and sign up (GitHub or email).
+2. Click "Create Database" → Select Redis.
+3. Choose the free plan and create a database. Name it `parkit-redis`.
+4. After creation, copy the **Redis URL**. Use the Redis URL that looks like:
+
+```
+rediss://:<password>@us1-upstash.redis.upstash.io:6379
+```
+
+5. In Render, add an environment variable for the API and worker services:
+
+```
+REDIS_URL=rediss://:<password>@us1-upstash.redis.upstash.io:6379
+```
+
+Notes:
+- Use `rediss://` (TLS) for secure connections in production.
+- Upstash provides both REST and Redis endpoints; BullMQ requires the normal Redis endpoint (not the REST API). Upstash's TLS Redis endpoint works for BullMQ.
+
+### **Why Upstash**
+- Free tier for low-throughput dev/testing.
+- Simple auth and TLS-enabled URLs.
+- No infra to manage (good for prototypes and small scale). For heavy production use, consider Redis Cloud or AWS Elasticache.
+
+---
+
+## � Step 1.6: Booking worker — runs inside the API by default (no separate deploy required)
+
+The project now starts a Nest-managed booking worker automatically when the API process boots. The `QueueModule` provides the BullMQ queue and the `BookingWorkerService` (a Nest provider) starts a `Worker` on module init. That means:
+
+- By default you do NOT need to deploy a separate background worker — the API process (apps/api) will consume the `booking:postprocess` queue for you.
+- This simplifies deployment: deploy only the API web service on Render and ensure `REDIS_URL` is set.
+
+When to deploy a separate worker
+
+- If you expect heavy background throughput and want to scale workers independently from the web/API (recommended for high load), you can still run a separate background worker service. The repo includes a `start:worker` script which launches the same worker code from a standalone process.
+
+Optional: deploy a separate worker on Render
+
+1. Dashboard → "New +" → "Background Worker".
+2. Select your repo and configure:
+
+```
+Name:              parkit-worker
+Environment:       Node
+Root Directory:    apps/api
+Build Command:     yarn --cwd apps/api install && yarn --cwd apps/api build
+Start Command:     yarn --cwd apps/api start:worker
+Plan:              Free (or choose appropriate plan)
+```
+
+3. Add the same environment variables as the API (DATABASE_URL, JWT_SECRET, REDIS_URL, etc.). Ensure the worker can reach the DB and Redis.
+4. Click "Create" and wait for deployment. The worker logs will show queue consumption.
+
+Healthchecks & Scaling
+
+- You can scale workers independently by increasing the instance count.
+- Configure worker instance size/auto-scaling depending on job throughput.
+
+---
+
+## 📊 Bull Board (queue dashboard)
+
+Bull Board is a lightweight UI to inspect Bull/BullMQ queues. You can host it in one of three ways:
+
+1. Mount Bull Board inside the API (admin-only route `/admin/queues`) and guard it with `@AllowAuthenticated('admin')`.
+2. Run Bull Board as a small standalone service (separate Render service) that points to the same `REDIS_URL`.
+3. Run Bull Board locally for debugging using the same `REDIS_URL`.
+
+Quick steps to run Bull Board as a separate service on Render:
+
+1. Create a tiny Express app that mounts Bull Board and reads `REDIS_URL` from env.
+2. Deploy as `parkit-bullboard` with `Root Directory: apps/api` (or a new directory `tools/bullboard`) and `Start Command: node dist/tools/bullboard.js`.
+3. Protect the route with basic auth or restrict access using Render's private services / network.
+
+For now, you can run Bull Board locally while developing:
+
+```
+# install dependencies
+yarn --cwd apps/api add @bull-board/express bullmq ioredis
+
+# run local script (example)
+node tools/bullboard/local-bullboard.js
+```
+
+---
+
+Now Redis and the worker are covered. Continue to Step 2 to deploy frontends.
+
+---
+
+## �🚀 Step 2: Deploy Frontend Apps to Vercel
 
 ### **2.1 Connect GitHub to Vercel**
 1. Go to https://vercel.com

@@ -14,4 +14,6 @@ export class BookingTimelineEntity implements RestrictProperties<
   valetId: string
   @IsOptional()
   managerId: string
+  @IsOptional()
+  companyId: number
 }

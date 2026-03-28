@@ -1,88 +1,49 @@
-import {
-  CanActivate,
-  ExecutionContext,
-  Injectable,
-  UnauthorizedException,
-} from '@nestjs/common'
+import { ExecutionContext, Injectable } from '@nestjs/common'
 import { GqlExecutionContext } from '@nestjs/graphql'
-import { JwtService } from '@nestjs/jwt'
 import { Reflector } from '@nestjs/core'
 import { Role } from 'src/common/types'
 import { PrismaService } from 'src/common/prisma/prisma.service'
+import { AuthGuard as PassportAuthGuard } from '@nestjs/passport'
 
+// This class adapts the passport JWT guard to GraphQL and preserves
+// the previous role-checking behavior via reflector metadata.
 @Injectable()
-export class AuthGuard implements CanActivate {
-  constructor(
-    private readonly jwtService: JwtService,
-    private readonly reflector: Reflector,
-    private readonly prisma: PrismaService,
-  ) {}
-  async canActivate(context: ExecutionContext): Promise<boolean> {
+export class AuthGuard extends PassportAuthGuard('jwt') {
+  constructor(private readonly reflector: Reflector, private readonly prisma: PrismaService) {
+    super()
+  }
+
+  // For GraphQL, extract the request from the GQL context so passport can read headers
+  getRequest(context: ExecutionContext) {
     const ctx = GqlExecutionContext.create(context)
-    const req = ctx.getContext().req
-
-    await this.authenticateUser(req)
-
-    return this.authorizeUser(req, context)
+    return ctx.getContext().req
   }
 
-  private async authenticateUser(req: any): Promise<void> {
-    const bearerHeader = req.headers.authorization
-    // Bearer eylskfdjlsdf309
-    const token = bearerHeader?.split(' ')[1]
+  // After passport validates and populates req.user, we still need to enforce roles
+  async canActivate(context: ExecutionContext): Promise<boolean> {
+    // first run passport's JWT check
+    const result = (await super.canActivate(context)) as boolean
 
-    if (!token) {
-      throw new UnauthorizedException('No token provided.')
-    }
+    if (!result) return false
 
-    try {
-      const payload = await this.jwtService.verify(token)
-      const uid = payload.uid
-      if (!uid) {
-        throw new UnauthorizedException(
-          'Invalid token. No uid present in the token.',
-        )
-      }
-
-      const user = await this.prisma.user.findUnique({ where: { uid } })
-      if (!user) {
-        throw new UnauthorizedException(
-          'Invalid token. No user present with the uid.',
-        )
-      }
-
-      console.log('jwt payload: ', payload)
-      req.user = payload
-    } catch (err) {
-      console.error('Token validation error:', err)
-      throw err
-    }
-
-    if (!req.user) {
-      throw new UnauthorizedException('Invalid token.')
-    }
-  }
-
-  private async authorizeUser(
-    req: any,
-    context: ExecutionContext,
-  ): Promise<boolean> {
-    const requiredRoles = this.getMetadata<Role[]>('roles', context)
-    const userRoles = await this.getUserRoles(req.user.uid)
-    req.user.roles = userRoles
-
-    if (!requiredRoles || requiredRoles.length === 0) {
-      return true
-    }
-
-    return requiredRoles.some((role) => userRoles.includes(role))
-  }
-
-  private getMetadata<T>(key: string, context: ExecutionContext): T {
-    return this.reflector.getAllAndOverride<T>(key, [
+    const req = this.getRequest(context)
+    // ensure roles are present on req.user (JwtStrategy attaches them)
+    const requiredRoles = this.reflector.getAllAndOverride<Role[]>('roles', [
       context.getHandler(),
       context.getClass(),
     ])
+
+    // If no roles required, allow
+    if (!requiredRoles || requiredRoles.length === 0) return true
+
+    // If strategy didn't attach roles, fall back to DB lookup
+    let userRoles: Role[] = req.user?.roles || []
+    if (!userRoles || userRoles.length === 0) {
+      userRoles = await this.getUserRoles(req.user?.uid)
+      req.user.roles = userRoles
+    }
+
+    return requiredRoles.some((role) => userRoles.includes(role))
   }
 
   private async getUserRoles(uid: string): Promise<Role[]> {
@@ -92,7 +53,6 @@ export class AuthGuard implements CanActivate {
       this.prisma.admin.findUnique({ where: { uid } }),
       this.prisma.manager.findUnique({ where: { uid } }),
       this.prisma.valet.findUnique({ where: { uid } }),
-      // Add promises for other role models here
     ])
 
     admin && roles.push('admin')

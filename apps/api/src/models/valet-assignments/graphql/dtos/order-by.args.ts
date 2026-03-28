@@ -3,6 +3,7 @@ import { Prisma } from '@prisma/client'
 import { RestrictProperties } from 'src/common/dtos/common.input'
 import { BookingOrderByWithRelationInput } from 'src/models/bookings/graphql/dtos/order-by.args'
 import { ValetOrderByWithRelationInput } from 'src/models/valets/graphql/dtos/order-by.args'
+import { CompanyOrderByWithRelationInput } from 'src/models/companies/graphql/dtos/order-by.args'
 
 @InputType()
 export class ValetAssignmentOrderByWithRelationInputStrict implements RestrictProperties<
@@ -30,6 +31,10 @@ export class ValetAssignmentOrderByWithRelationInputStrict implements RestrictPr
   PickupValet: ValetOrderByWithRelationInput
   ReturnValet: ValetOrderByWithRelationInput
   Booking: BookingOrderByWithRelationInput
+  @Field(() => Prisma.SortOrder, { nullable: true })
+  companyId: Prisma.SortOrder
+  @Field(() => CompanyOrderByWithRelationInput, { nullable: true })
+  Company: CompanyOrderByWithRelationInput
   // Todo: Add below field decorator to the SortOrder properties.
   // @Field(() => Prisma.SortOrder)
 }

@@ -1,10 +1,19 @@
 import { NestFactory } from '@nestjs/core'
 import { AppModule } from './app.module'
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger'
+import setupBullBoard from './tools/bullboard/bullboard'
 const port = process.env.PORT || 3000
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule)
+  // Mount Bull Board (queue dashboard) at /admin/queues (protected by basic auth)
+  try {
+    const server = app.getHttpAdapter().getInstance()
+    setupBullBoard(server)
+  } catch (err) {
+    // non-fatal: if bull-board setup fails, continue without dashboard
+    console.warn('Bull Board not mounted:', err)
+  }
   app.enableCors()
 
   const config = new DocumentBuilder()

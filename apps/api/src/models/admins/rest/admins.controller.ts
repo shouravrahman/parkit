@@ -29,7 +29,7 @@ import { checkRowLevelPermission } from 'src/common/auth/util'
 export class AdminsController {
   constructor(private readonly prisma: PrismaService) {}
 
-  @AllowAuthenticated()
+  @AllowAuthenticated('admin')
   @ApiBearerAuth()
   @ApiCreatedResponse({ type: AdminEntity })
   @Post()
@@ -56,7 +56,7 @@ export class AdminsController {
 
   @ApiOkResponse({ type: AdminEntity })
   @ApiBearerAuth()
-  @AllowAuthenticated()
+  @AllowAuthenticated('admin')
   @Patch(':uid')
   async update(
     @Param('uid') uid: string,
@@ -72,7 +72,7 @@ export class AdminsController {
   }
 
   @ApiBearerAuth()
-  @AllowAuthenticated()
+  @AllowAuthenticated('admin')
   @Delete(':uid')
   async remove(@Param('uid') uid: string, @GetUser() user: GetUserType) {
     const admin = await this.prisma.admin.findUnique({ where: { uid } })
