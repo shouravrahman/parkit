@@ -36,7 +36,7 @@ const MAX_AGE = 24 * 60 * 60
 
 @Module({
   imports: [
-    ConfigModule.forRoot(),
+    ConfigModule.forRoot({ isGlobal: true }),
     JwtModule.registerAsync({
       imports: [ConfigModule],
       useFactory: async () => {

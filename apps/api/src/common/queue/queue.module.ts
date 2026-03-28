@@ -12,7 +12,8 @@ import { BOOKING_QUEUE, BOOKING_QUEUE_NAME } from './queue.constants'
     {
       provide: BOOKING_QUEUE,
       useFactory: (config: ConfigService) => {
-        const REDIS_URL = config.get<string>('REDIS_URL') || 'redis://127.0.0.1:6379'
+        const REDIS_URL = config.get<string>('REDIS_URL') || process.env.REDIS_URL || 'redis://127.0.0.1:6379'
+        console.log('Initialize Queue with Redis URL (masked):', REDIS_URL.replace(/:[^:@]+@/, ':****@'))
         return new Queue(BOOKING_QUEUE_NAME, { connection: REDIS_URL } as any)
       },
       inject: [ConfigService],

@@ -11,7 +11,8 @@ export class BookingWorkerService implements OnModuleInit, OnModuleDestroy {
   constructor(private config: ConfigService, private prisma: PrismaService) {}
 
   onModuleInit() {
-    const REDIS_URL = this.config.get<string>('REDIS_URL') || 'redis://127.0.0.1:6379'
+    const REDIS_URL = this.config.get<string>('REDIS_URL') || process.env.REDIS_URL || 'redis://127.0.0.1:6379'
+    console.log('Initialize Worker with Redis URL (masked):', REDIS_URL.replace(/:[^:@]+@/, ':****@'))
     this.worker = new Worker(
       BOOKING_QUEUE_NAME,
       async (job) => {
