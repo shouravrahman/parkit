@@ -37,6 +37,15 @@ const getClient = (uri: string): ApolloClient<object> => {
   const cache = new InMemoryCache({
     typePolicies: {
       ValetAssignment: { keyFields: ['bookingId'] },
+      Garage: {
+        fields: {
+          verification: {
+            merge(_, incoming) {
+              return incoming
+            },
+          },
+        },
+      },
     },
   })
 

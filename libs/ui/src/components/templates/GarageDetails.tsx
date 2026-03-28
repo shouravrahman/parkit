@@ -13,7 +13,7 @@ export const GarageDetails = ({ garageId }: { garageId: number }) => {
   })
 
   return (
-    <ShowData loading={loading} error={error?.message}>
+    <ShowData loading={loading} error={error?.message} childrenClassName="block w-full">
       {data?.garage && (
         <div className="space-y-8">
           {/* Header */}

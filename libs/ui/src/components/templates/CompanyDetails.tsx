@@ -11,7 +11,7 @@ export const CompanyDetails = ({ companyId }: { companyId: number }) => {
   })
 
   return (
-    <ShowData loading={loading} error={error?.message}>
+    <ShowData loading={loading} error={error?.message} childrenClassName="block w-full">
       {data?.company && (
         <div className="space-y-12">
           {/* Header Section */}

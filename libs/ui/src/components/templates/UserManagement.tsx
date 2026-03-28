@@ -5,7 +5,7 @@ import { UsersDocument } from '@parkit/network/src/gql/generated'
 import { ShowData } from '../organisms/ShowData'
 
 export const UserManagement = () => {
-  const { setSkip, setTake, skip, take } = useTakeSkip(12)
+  const { setSkip, setTake, skip, take } = useTakeSkip()
   const { data, loading, error } = useQuery(UsersDocument, {
     variables: { skip, take },
   })
