@@ -42,7 +42,11 @@ export function setupBullBoard(server: any) {
             return [k.trim(), decodeURIComponent(v.join('='))]
           }),
         )
-        token = cookies['accessToken'] || cookies['next-auth.session-token'] || cookies['nextAuthToken']
+        token = 
+          cookies['accessToken'] || 
+          cookies['__Secure-next-auth.session-token'] || 
+          cookies['next-auth.session-token'] || 
+          cookies['nextAuthToken']
       }
 
       if (!token) return res.status(401).send('Token required')
