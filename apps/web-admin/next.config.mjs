@@ -7,6 +7,14 @@ const nextConfig = {
       { hostname: 'lh3.googleusercontent.com' },
     ],
   },
+  async rewrites() {
+    return [
+      {
+        source: '/admin/queues/:path*',
+        destination: `${process.env.NEXT_PUBLIC_API_URL}/admin/queues/:path*`, // Proxy to Backend
+      },
+    ]
+  },
 }
 
 export default nextConfig
