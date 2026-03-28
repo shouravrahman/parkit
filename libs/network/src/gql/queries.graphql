@@ -80,6 +80,10 @@ query Company($where: CompanyWhereUniqueInput!) {
     garages {
       id
       displayName
+      description
+      images
+      verification { verified }
+      slotCounts { type count }
       address {
         address
         lat
