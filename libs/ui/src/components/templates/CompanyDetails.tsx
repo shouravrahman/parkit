@@ -1,3 +1,4 @@
+'use client'
 import { useQuery } from '@apollo/client'
 import { CompanyDocument } from '@parkit/network/src/gql/generated'
 import { GarageAdminCard } from '../organisms/GarageAdminCard'

@@ -12,6 +12,34 @@ mutation RegisterWithCredentials(
   }
 }
 
+query Users(
+  $distinct: [UserScalarFieldEnum!]
+  $orderBy: [UserOrderByWithRelationInput!]
+  $where: UserWhereInput
+  $cursor: UserWhereUniqueInput
+  $skip: Float
+  $take: Float
+) {
+  users(
+    distinct: $distinct
+    orderBy: $orderBy
+    where: $where
+    cursor: $cursor
+    skip: $skip
+    take: $take
+  ) {
+    uid
+    name
+    image
+    createdAt
+    updatedAt
+    admin { uid }
+    manager { uid companyId company { displayName } }
+    valet { uid companyId }
+  }
+}
+
+
 query Companies(
   $distinct: [CompanyScalarFieldEnum!]
   $orderBy: [CompanyOrderByWithRelationInput!]

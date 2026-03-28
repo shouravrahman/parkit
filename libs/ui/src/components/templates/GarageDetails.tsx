@@ -1,3 +1,4 @@
+'use client'
 import { useQuery } from '@apollo/client'
 import { GarageDocument } from '@parkit/network/src/gql/generated'
 import { ShowData } from '../organisms/ShowData'

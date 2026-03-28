@@ -40,6 +40,7 @@ export const ShowCompanies = () => {
         skip,
         take,
       }}
+      childrenClassName="space-y-6"
     >
       <div className="flex justify-end mb-4">
         <CreateCompany />
@@ -95,7 +96,10 @@ export const ShowGarages = () => {
     >
       {data?.garages.map((garage) => (
         <GarageAdminCard key={garage.id} garage={garage}>
-          <div className="flex justify-end">
+          <div className="flex justify-between items-center w-full">
+            <Link href={`/garage/${garage.id}`} className="text-sm font-semibold text-primary hover:underline">
+              View Details
+            </Link>
             {!garage?.verification?.verified ? (
               <CreateVerificationButton garageId={garage.id} />
             ) : (
