@@ -9,6 +9,9 @@ import { signIn } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 
+import { useSearchParams } from 'next/navigation'
+import { toast } from '../molecules/Toast'
+
 export interface ILoginFormProps {
   className?: string
 }
@@ -20,6 +23,8 @@ export const LoginForm = ({ className }: ILoginFormProps) => {
   } = useFormLogin()
 
   const { replace } = useRouter()
+  const searchParams = useSearchParams()
+  const callbackUrl = searchParams.get('callbackUrl') || '/'
   const [loading, setLoading] = useState(false)
 
   return (
@@ -36,10 +41,11 @@ export const LoginForm = ({ className }: ILoginFormProps) => {
         setLoading(false)
 
         if (result?.ok) {
-          replace('/')
+          toast.success('Login successful!')
+          replace(callbackUrl)
         }
         if (result?.error) {
-          alert('Login failed. Try again.')
+          toast.error('Login failed. Please check your credentials.')
         }
       })}
     >
