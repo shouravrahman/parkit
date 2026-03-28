@@ -5,6 +5,9 @@ import { CreateBookingInput } from './dtos/create-booking.input'
 import { UpdateBookingInput } from './dtos/update-booking.input'
 import { generateSixDigitNumber } from 'src/common/util'
 import { SlotType } from '@prisma/client'
+import { Queue } from 'bullmq'
+import { getRedisConnectionOptions } from 'src/common/queue/utils'
+import Redis from 'ioredis'
 
 @Injectable()
 export class BookingsService {
@@ -77,6 +80,21 @@ export class BookingsService {
         data: { bookingId: booking.id, status: 'BOOKED' },
       })
 
+      return booking
+    }).then(async (booking) => {
+      try {
+        const REDIS_URL = process.env.REDIS_URL || 'redis://127.0.0.1:6379'
+        const connectionOptions = await getRedisConnectionOptions(REDIS_URL)
+        const connection = new Redis((connectionOptions as any).url, {
+          maxRetriesPerRequest: null,
+          tls: (connectionOptions as any).tls,
+        })
+        const bookingQueue = new Queue('booking:postprocess', { connection })
+        await bookingQueue.add(`postprocess-${booking.id}`, { bookingId: booking.id })
+        await bookingQueue.close()
+      } catch (e) {
+        console.error('Failed to queue booking for worker processing', e)
+      }
       return booking
     })
   }
