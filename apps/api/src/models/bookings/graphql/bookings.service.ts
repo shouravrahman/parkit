@@ -90,7 +90,13 @@ export class BookingsService {
           tls: (connectionOptions as any).tls,
         })
         const bookingQueue = new Queue('booking:postprocess', { connection })
-        await bookingQueue.add(`postprocess-${booking.id}`, { bookingId: booking.id })
+        
+        // Use standard Job Config: Attempt to process 3 times, waiting 5 seconds between failures
+        await bookingQueue.add(`postprocess-${booking.id}`, { bookingId: booking.id }, {
+          attempts: 3,
+          backoff: { type: 'fixed', delay: 5000 }
+        })
+        
         await bookingQueue.close()
       } catch (e) {
         console.error('Failed to queue booking for worker processing', e)

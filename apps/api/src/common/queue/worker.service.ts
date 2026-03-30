@@ -63,17 +63,8 @@ export class BookingWorkerService implements OnModuleInit, OnModuleDestroy {
             }
 
             if (!chosen) {
-              // No available valets now. Requeue the job with a delay so operator can add valets or load reduces.
-              console.warn('No valets available, requeueing job with delay', bookingId)
-              const connection = new Redis((connectionOptions as any).url, {
-                maxRetriesPerRequest: null,
-                tls: (connectionOptions as any).tls,
-              })
-              const q = new Queue('booking:postprocess', { connection })
-              // small delay (e.g., 30s). If many retries are needed, BullMQ backoff/retries can be configured when scheduling.
-              await q.add(`retry-${bookingId}-${Date.now()}`, { bookingId }, { delay: 30_000 })
-              await q.close()
-              return
+              // No valets available right now. Let BullMQ handle retries.
+              throw new Error('No available valets at this time.')
             }
 
             // Update or Create ValetAssignment and update booking status + timeline atomically.
@@ -128,7 +119,63 @@ export class BookingWorkerService implements OnModuleInit, OnModuleDestroy {
     )
 
     this.worker.on('completed', (job) => console.log('Job completed', job.id))
-    this.worker.on('failed', (job, err) => console.error('Job failed', job?.id, err))
+    
+    this.worker.on('failed', async (job, err) => {
+      console.error(`Job failed ${job?.id}`, err.message)
+      const attemptsMade = job?.attemptsMade || 0
+      const maxAttempts = job?.opts?.attempts || 1
+
+      // If we have exhausted all retries, trigger the Automated Dead Letter Fallback
+      if (attemptsMade >= maxAttempts && job?.data?.bookingId) {
+        const bookingId = job.data.bookingId
+        console.log(`Max retries reached for booking ${bookingId}. Triggering automated cancellation.`)
+        
+        try {
+          const booking = await this.prisma.booking.findUnique({
+            where: { id: bookingId },
+            include: { Slot: { include: { Garage: { include: { Company: { include: { Managers: true } } } } } } }
+          })
+          
+          if (booking && booking.status !== 'CANCELLED') {
+            await this.prisma.$transaction(async (tx) => {
+              await tx.booking.update({
+                where: { id: bookingId },
+                data: { status: 'CANCELLED' }
+              })
+              await tx.bookingTimeline.create({
+                data: { bookingId, status: 'CANCELLED' as any }
+              })
+              
+              // 1. Notify Customer (Push Notification Simulation)
+              await tx.notification.create({
+                data: {
+                  userId: booking.customerId,
+                  title: 'Booking Cancelled',
+                  message: "We're sorry, all of our valets are currently busy. Your booking has been cancelled and your card will not be charged.",
+                  type: 'BOOKING_STATUS_UPDATED',
+                }
+              })
+              
+              // 2. Alert Manager Dashboard
+              const managers = booking.Slot?.Garage?.Company?.Managers || []
+              for (const m of managers) {
+                await tx.notification.create({
+                  data: {
+                    userId: m.uid,
+                    title: 'Unassigned Booking Cancelled',
+                    message: `Booking #${bookingId} was automatically cancelled because no valets were available after maximum retries.`,
+                    type: 'BOOKING_STATUS_UPDATED',
+                  }
+                })
+              }
+            })
+            console.log(`Successfully cancelled booking ${bookingId} and notified customer/managers.`)
+          }
+        } catch (fallbackErr) {
+          console.error(`Failed to execute fallback cancellation for booking ${bookingId}`, fallbackErr)
+        }
+      }
+    })
 
     console.log('BookingWorkerService started')
   }
