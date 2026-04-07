@@ -10,16 +10,15 @@ import { UpdateVerificationInput } from './dtos/update-verification.input'
 import { AllowAuthenticated, GetUser } from 'src/common/auth/auth.decorator'
 import { PrismaService } from 'src/common/prisma/prisma.service'
 import { GetUserType } from 'src/common/types'
-import { NotificationsService } from 'src/models/notifications/graphql/notifications.service'
-import { NotificationType } from '@prisma/client'
+import { NotificationService } from 'src/common/queue/notification.service'
 
 @Resolver(() => Verification)
 export class VerificationsResolver {
   constructor(
     private readonly verificationsService: VerificationsService,
     private readonly prisma: PrismaService,
-    private readonly notificationsService: NotificationsService,
-  ) { }
+    private readonly notificationService: NotificationService,
+  ) {}
 
   @AllowAuthenticated('admin')
   @Mutation(() => Verification)
@@ -29,21 +28,19 @@ export class VerificationsResolver {
   ) {
     const verification = await this.verificationsService.create(args, user.uid)
 
-    // Notify garage manager
-    try {
-      const garage = await this.prisma.garage.findUnique({
-        where: { id: args.garageId },
-        include: { Company: { include: { Managers: true } } },
+    const garage = await this.prisma.garage.findUnique({
+      where: { id: args.garageId },
+      include: { Company: { include: { Managers: true } } },
+    })
+    for (const manager of garage?.Company?.Managers ?? []) {
+      await this.notificationService.send({
+        userId: manager.uid,
+        title: 'Garage Verified',
+        message: `${garage.displayName ?? 'Your garage'} has been verified.`,
+        type: 'VERIFICATION_UPDATED' as any,
+        metadata: { garageId: args.garageId },
       })
-      for (const manager of garage?.Company?.Managers ?? []) {
-        await this.notificationsService.create({
-          userId: manager.uid,
-          title: 'Garage Verified',
-          message: `${garage.displayName ?? 'Your garage'} has been verified.`,
-          type: NotificationType.VERIFICATION_UPDATED,
-        })
-      }
-    } catch { }
+    }
 
     return verification
   }
@@ -72,21 +69,19 @@ export class VerificationsResolver {
     @Args() args: FindUniqueVerificationArgs,
     @GetUser() user: GetUserType,
   ) {
-    // Notify manager of removal
-    try {
-      const garage = await this.prisma.garage.findUnique({
-        where: { id: args.where.garageId },
-        include: { Company: { include: { Managers: true } } },
+    const garage = await this.prisma.garage.findUnique({
+      where: { id: args.where.garageId },
+      include: { Company: { include: { Managers: true } } },
+    })
+    for (const manager of garage?.Company?.Managers ?? []) {
+      await this.notificationService.send({
+        userId: manager.uid,
+        title: 'Garage Verification Removed',
+        message: `Verification for ${garage.displayName ?? 'your garage'} has been removed.`,
+        type: 'VERIFICATION_UPDATED' as any,
+        metadata: { garageId: args.where.garageId },
       })
-      for (const manager of garage?.Company?.Managers ?? []) {
-        await this.notificationsService.create({
-          userId: manager.uid,
-          title: 'Verification Removed',
-          message: `Verification for ${garage.displayName ?? 'your garage'} has been removed.`,
-          type: NotificationType.VERIFICATION_UPDATED,
-        })
-      }
-    } catch { }
+    }
 
     return this.verificationsService.remove(args)
   }

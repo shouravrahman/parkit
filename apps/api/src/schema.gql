@@ -111,6 +111,7 @@ enum BookingStatus {
   VALET_ASSIGNED_FOR_CHECK_OUT
   CHECKED_OUT
   VALET_RETURNED
+  CANCELLED
 }
 
 type Company {

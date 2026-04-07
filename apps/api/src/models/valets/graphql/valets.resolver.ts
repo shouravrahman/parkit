@@ -13,12 +13,14 @@ import { Booking } from 'src/models/bookings/graphql/entity/booking.entity'
 import { PaginationInput } from 'src/common/dtos/common.input'
 import { BookingStatus } from '@prisma/client'
 import { BadGatewayException } from '@nestjs/common'
+import { NotificationService } from 'src/common/queue/notification.service'
 
 @Resolver(() => Valet)
 export class ValetsResolver {
   constructor(
     private readonly valetsService: ValetsService,
     private readonly prisma: PrismaService,
+    private readonly notificationService: NotificationService,
   ) {}
 
   @AllowAuthenticated()
@@ -56,7 +58,7 @@ export class ValetsResolver {
           select: {
             Garage: {
               select: {
-                Company: { select: { Managers: true, Valets: true } },
+                Company: { select: { id: true, Managers: true, Valets: true } },
               },
             },
           },
@@ -91,9 +93,51 @@ export class ValetsResolver {
           bookingId,
           valetId: user.uid,
           status,
+          companyId: booking.Slot.Garage.Company.id,
         },
       }),
     ])
+
+    const fullBooking = await this.prisma.booking.findUnique({
+      where: { id: bookingId },
+    })
+
+    if (status === BookingStatus.VALET_PICKED_UP) {
+      await this.notificationService.sendBookingStatusUpdate(
+        bookingId,
+        fullBooking?.customerId || '',
+        status,
+        'Your vehicle has been picked up by the valet.',
+      )
+    } else if (status === BookingStatus.CHECKED_IN) {
+      await this.notificationService.sendBookingStatusUpdate(
+        bookingId,
+        fullBooking?.customerId || '',
+        status,
+        'Your vehicle has been checked in.',
+      )
+    } else if (status === BookingStatus.VALET_ASSIGNED_FOR_CHECK_OUT) {
+      await this.notificationService.sendBookingStatusUpdate(
+        bookingId,
+        fullBooking?.customerId || '',
+        status,
+        'Your vehicle is ready for pickup. A valet has been assigned.',
+      )
+    } else if (status === BookingStatus.CHECKED_OUT) {
+      await this.notificationService.sendBookingStatusUpdate(
+        bookingId,
+        fullBooking?.customerId || '',
+        status,
+        'Your vehicle has been checked out.',
+      )
+    } else if (status === BookingStatus.VALET_RETURNED) {
+      await this.notificationService.sendBookingStatusUpdate(
+        bookingId,
+        fullBooking?.customerId || '',
+        status,
+        'Your vehicle has been returned to you.',
+      )
+    }
 
     return updatedBooking
   }

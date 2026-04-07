@@ -1,4 +1,9 @@
-import { MiddlewareConsumer, Module, NestModule, RequestMethod } from '@nestjs/common'
+import {
+  MiddlewareConsumer,
+  Module,
+  NestModule,
+  RequestMethod,
+} from '@nestjs/common'
 import { AppController } from './app.controller'
 import { AppService } from './app.service'
 import { GraphQLModule } from '@nestjs/graphql'
@@ -30,6 +35,9 @@ import { AuthModule } from './models/auth/auth.module'
 import { InvitesModule } from './models/invites/invites.module'
 import { PubSubModule } from './common/pubsub/pubsub.module'
 import { TenantMiddleware } from './common/tenant/tenant.middleware'
+import { TenantModule } from './common/tenant/tenant.module'
+import { LoggerMiddleware } from './common/logger/logger.middleware'
+import { GraphQLLoggerPlugin } from './common/logger/graphql-logger.plugin'
 
 // Todo: Move this to util lib.
 const MAX_AGE = 24 * 60 * 60
@@ -65,7 +73,9 @@ const MAX_AGE = 24 * 60 * 60
           'graphql-ws': {
             onConnect: (context: any) => {
               const { connectionParams } = context
-              const token = (connectionParams?.['Authorization'] as string)?.split(' ')[1]
+              const token = (
+                connectionParams?.['Authorization'] as string
+              )?.split(' ')[1]
 
               if (token) {
                 const payload = jwtService.decode(token)
@@ -84,7 +94,8 @@ const MAX_AGE = 24 * 60 * 60
     }),
 
     PrismaModule,
-  QueueModule,
+    TenantModule,
+    QueueModule,
     PubSubModule,
 
     StripeModule,
@@ -108,10 +119,12 @@ const MAX_AGE = 24 * 60 * 60
     InvitesModule,
   ],
   controllers: [AppController],
-  providers: [AppService, JwtStrategy],
+  providers: [AppService, JwtStrategy, GraphQLLoggerPlugin],
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
-    consumer.apply(TenantMiddleware).forRoutes({ path: '*', method: RequestMethod.ALL })
+    consumer
+      .apply(TenantMiddleware, LoggerMiddleware)
+      .forRoutes({ path: '*', method: RequestMethod.ALL })
   }
 }

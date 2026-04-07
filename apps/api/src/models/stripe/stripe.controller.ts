@@ -13,12 +13,11 @@ import { CreateStripeDto } from './dto/create-stripe-session.dto'
 import { CreateBookingInput } from '../bookings/graphql/dtos/create-booking.input'
 import { Response } from 'express'
 
-import { NotificationsService } from '../notifications/graphql/notifications.service'
+import { NotificationService } from 'src/common/queue/notification.service'
 import { PrismaService } from 'src/common/prisma/prisma.service'
 import { PubSub } from 'graphql-subscriptions'
 import { PUB_SUB } from 'src/common/pubsub/pubsub.module'
 import { Inject } from '@nestjs/common'
-import { NotificationType } from '@prisma/client'
 import { publishSlotAvailability } from 'src/common/pubsub/publish-slot-availability'
 
 @Controller('stripe')
@@ -27,7 +26,7 @@ export class StripeController {
     private readonly stripeService: StripeService,
     private readonly bookingService: BookingsService,
     private readonly prisma: PrismaService,
-    private readonly notificationsService: NotificationsService,
+    private readonly notificationService: NotificationService,
     @Inject(PUB_SUB) private readonly pubSub: PubSub,
   ) {}
 
@@ -58,33 +57,29 @@ export class StripeController {
     const bookingInput: CreateBookingInput = JSON.parse(bookingData)
     const newBooking = await this.bookingService.create(bookingInput)
 
-    // Notify customer
-    try {
-      await this.notificationsService.create({
-        userId: bookingInput.customerId,
-        title: 'Booking Confirmed',
-        message: `Your booking #${newBooking.id} has been confirmed.`,
-        type: NotificationType.BOOKING_CONFIRMED,
-      })
-    } catch { }
+    const slot = await this.prisma.slot.findUnique({
+      where: { id: newBooking.slotId },
+      include: { Garage: true },
+    })
 
-    // Notify garage manager
-    try {
-      const slot = await this.prisma.slot.findUnique({
-        where: { id: newBooking.slotId },
-        include: { Garage: { include: { Company: { include: { Managers: true } } } } },
-      })
-      for (const manager of slot?.Garage?.Company?.Managers ?? []) {
-        await this.notificationsService.create({
-          userId: manager.uid,
-          title: 'New Booking',
-          message: `A new booking #${newBooking.id} has been made at ${slot.Garage.displayName ?? 'your garage'}.`,
-          type: NotificationType.NEW_BOOKING,
-        })
-      }
-    } catch { }
+    await this.notificationService.sendBookingConfirmed(
+      newBooking.id,
+      bookingInput.customerId,
+      slot?.Garage?.displayName || 'the garage',
+    )
 
-    // Publish slot availability
+    const managers = await this.prisma.manager.findMany({
+      where: { companyId: slot?.Garage?.companyId },
+    })
+    for (const manager of managers) {
+      await this.notificationService.sendNewBooking(
+        newBooking.id,
+        manager.uid,
+        'Customer',
+        new Date().toLocaleTimeString(),
+      )
+    }
+
     try {
       await publishSlotAvailability(
         this.pubSub,
@@ -93,7 +88,7 @@ export class StripeController {
         new Date(bookingInput.startTime),
         new Date(bookingInput.endTime),
       )
-    } catch { }
+    } catch {}
 
     res.redirect(process.env.BOOKINGS_REDIRECT_URL)
   }

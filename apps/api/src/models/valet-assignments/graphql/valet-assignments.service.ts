@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common'
+import { Injectable, ForbiddenException } from '@nestjs/common'
 import {
   FindManyValetAssignmentArgs,
   FindUniqueValetAssignmentArgs,
@@ -6,33 +6,93 @@ import {
 import { PrismaService } from 'src/common/prisma/prisma.service'
 import { CreateValetAssignmentInput } from './dtos/create-valet-assignment.input'
 import { UpdateValetAssignmentInput } from './dtos/update-valet-assignment.input'
+import { TenantService } from 'src/common/tenant/tenant.service'
 
 @Injectable()
 export class ValetAssignmentsService {
-  constructor(private readonly prisma: PrismaService) {}
-  create(createValetAssignmentInput: CreateValetAssignmentInput) {
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly tenantService: TenantService,
+  ) {}
+
+  async create(createValetAssignmentInput: CreateValetAssignmentInput) {
+    const tenantId = this.tenantService.getTenantId()
     return this.prisma.valetAssignment.create({
-      data: createValetAssignmentInput,
+      data: {
+        ...createValetAssignmentInput,
+        companyId:
+          createValetAssignmentInput.companyId || tenantId || undefined,
+      },
     })
   }
 
-  findAll(args: FindManyValetAssignmentArgs) {
+  async findAll(args: FindManyValetAssignmentArgs) {
+    const tenantId = this.tenantService.getTenantId()
+    const where = args.where || {}
+
+    if (tenantId) {
+      return this.prisma.valetAssignment.findMany({
+        ...args,
+        where: {
+          ...where,
+          companyId: tenantId,
+        },
+      })
+    }
+
     return this.prisma.valetAssignment.findMany(args)
   }
 
-  findOne(args: FindUniqueValetAssignmentArgs) {
-    return this.prisma.valetAssignment.findUnique(args)
+  async findOne(args: FindUniqueValetAssignmentArgs) {
+    const tenantId = this.tenantService.getTenantId()
+
+    const assignment = await this.prisma.valetAssignment.findUnique({
+      where: args.where,
+      include: {
+        Booking: { include: { Slot: { include: { Garage: true } } } },
+      },
+    })
+
+    if (!assignment) return null
+
+    if (tenantId && assignment.companyId !== tenantId) {
+      return null
+    }
+
+    return assignment
   }
 
-  update(updateValetAssignmentInput: UpdateValetAssignmentInput) {
+  async update(updateValetAssignmentInput: UpdateValetAssignmentInput) {
+    const tenantId = this.tenantService.getTenantId()
     const { bookingId, ...data } = updateValetAssignmentInput
+
+    const assignment = await this.prisma.valetAssignment.findUnique({
+      where: { bookingId },
+    })
+    if (!assignment) throw new Error('Assignment not found')
+
+    if (tenantId && assignment.companyId !== tenantId) {
+      throw new ForbiddenException('Access denied')
+    }
+
     return this.prisma.valetAssignment.update({
       where: { bookingId },
       data: data,
     })
   }
 
-  remove(args: FindUniqueValetAssignmentArgs) {
+  async remove(args: FindUniqueValetAssignmentArgs) {
+    const tenantId = this.tenantService.getTenantId()
+
+    const assignment = await this.prisma.valetAssignment.findUnique({
+      where: args.where,
+    })
+    if (!assignment) throw new Error('Assignment not found')
+
+    if (tenantId && assignment.companyId !== tenantId) {
+      throw new ForbiddenException('Access denied')
+    }
+
     return this.prisma.valetAssignment.delete(args)
   }
 }

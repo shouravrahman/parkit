@@ -7,6 +7,14 @@ const nextConfig = {
       { hostname: 'lh3.googleusercontent.com' },
     ],
   },
+  async rewrites() {
+    return [
+      {
+        source: '/osrm-proxy/:path*',
+        destination: 'https://router.project-osrm.org/:path*',
+      },
+    ]
+  },
 }
 
 export default nextConfig

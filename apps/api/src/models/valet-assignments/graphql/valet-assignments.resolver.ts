@@ -19,16 +19,15 @@ import { GetUserType } from 'src/common/types'
 import { AllowAuthenticated, GetUser } from 'src/common/auth/auth.decorator'
 import { PrismaService } from 'src/common/prisma/prisma.service'
 import { Valet } from 'src/models/valets/graphql/entity/valet.entity'
-import { NotificationsService } from 'src/models/notifications/graphql/notifications.service'
-import { NotificationType } from '@prisma/client'
+import { NotificationService } from 'src/common/queue/notification.service'
 
 @Resolver(() => ValetAssignment)
 export class ValetAssignmentsResolver {
   constructor(
     private readonly valetAssignmentsService: ValetAssignmentsService,
     private readonly prisma: PrismaService,
-    private readonly notificationsService: NotificationsService,
-  ) { }
+    private readonly notificationService: NotificationService,
+  ) {}
 
   @AllowAuthenticated()
   @Mutation(() => ValetAssignment)
@@ -39,25 +38,24 @@ export class ValetAssignmentsResolver {
     checkRowLevelPermission(user, [args.pickupValetId, args.returnValetId])
     const assignment = await this.valetAssignmentsService.create(args)
 
-    // Notify valets
-    try {
-      if (args.pickupValetId) {
-        await this.notificationsService.create({
-          userId: args.pickupValetId,
-          title: 'New Pickup Job',
-          message: `You have been assigned a pickup for booking #${args.bookingId}.`,
-          type: NotificationType.VALET_ASSIGNED,
-        })
-      }
-      if (args.returnValetId && args.returnValetId !== args.pickupValetId) {
-        await this.notificationsService.create({
-          userId: args.returnValetId,
-          title: 'New Return Job',
-          message: `You have been assigned a return for booking #${args.bookingId}.`,
-          type: NotificationType.VALET_ASSIGNED,
-        })
-      }
-    } catch { }
+    if (args.pickupValetId) {
+      await this.notificationService.send({
+        userId: args.pickupValetId,
+        title: 'New Pickup Job',
+        message: `You have been assigned a pickup for booking #${args.bookingId}.`,
+        type: 'VALET_ASSIGNED' as any,
+        metadata: { bookingId: args.bookingId },
+      })
+    }
+    if (args.returnValetId && args.returnValetId !== args.pickupValetId) {
+      await this.notificationService.send({
+        userId: args.returnValetId,
+        title: 'New Return Job',
+        message: `You have been assigned a return for booking #${args.bookingId}.`,
+        type: 'VALET_ASSIGNED' as any,
+        metadata: { bookingId: args.bookingId },
+      })
+    }
 
     return assignment
   }
@@ -105,12 +103,16 @@ export class ValetAssignmentsResolver {
   @ResolveField(() => Valet, { nullable: true })
   pickupValet(@Parent() parent: ValetAssignment) {
     if (!parent.pickupValetId) return null
-    return this.prisma.valet.findUnique({ where: { uid: parent.pickupValetId } })
+    return this.prisma.valet.findUnique({
+      where: { uid: parent.pickupValetId },
+    })
   }
 
   @ResolveField(() => Valet, { nullable: true })
   returnValet(@Parent() parent: ValetAssignment) {
     if (!parent.returnValetId) return null
-    return this.prisma.valet.findUnique({ where: { uid: parent.returnValetId } })
+    return this.prisma.valet.findUnique({
+      where: { uid: parent.returnValetId },
+    })
   }
 }

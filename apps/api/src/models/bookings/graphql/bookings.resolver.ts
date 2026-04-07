@@ -26,17 +26,17 @@ import { AggregateCountOutput } from 'src/common/dtos/common.input'
 import { BookingWhereInput } from './dtos/where.args'
 import { BookingTimeline } from 'src/models/booking-timelines/graphql/entity/booking-timeline.entity'
 import { BadRequestException } from '@nestjs/common'
-import { BookingStatus, NotificationType } from '@prisma/client'
-import { NotificationsService } from 'src/models/notifications/graphql/notifications.service'
+import { BookingStatus } from '@prisma/client'
+import { NotificationService } from 'src/common/queue/notification.service'
 
 @Resolver(() => Booking)
 export class BookingsResolver {
   constructor(
     private readonly bookingsService: BookingsService,
     private readonly prisma: PrismaService,
-    private readonly notificationsService: NotificationsService,
+    private readonly notificationService: NotificationService,
     @Inject(PUB_SUB) private readonly pubSub: PubSub,
-  ) { }
+  ) {}
 
   @AllowAuthenticated()
   @Mutation(() => Booking)
@@ -47,33 +47,29 @@ export class BookingsResolver {
     checkRowLevelPermission(user, args.customerId)
     const booking = await this.bookingsService.create(args)
 
-    // Notify customer
-    try {
-      await this.notificationsService.create({
-        userId: args.customerId,
-        title: 'Booking Confirmed',
-        message: `Your booking #${booking.id} has been confirmed.`,
-        type: NotificationType.BOOKING_CONFIRMED,
-      })
-    } catch { }
+    const slot = await this.prisma.slot.findUnique({
+      where: { id: booking.slotId },
+      include: { Garage: true },
+    })
 
-    // Notify garage manager
-    try {
-      const slot = await this.prisma.slot.findUnique({
-        where: { id: booking.slotId },
-        include: { Garage: { include: { Company: { include: { Managers: true } } } } },
-      })
-      for (const manager of slot?.Garage?.Company?.Managers ?? []) {
-        await this.notificationsService.create({
-          userId: manager.uid,
-          title: 'New Booking',
-          message: `A new booking #${booking.id} has been made at ${slot.Garage.displayName ?? 'your garage'}.`,
-          type: NotificationType.NEW_BOOKING,
-        })
-      }
-    } catch { }
+    await this.notificationService.sendBookingConfirmed(
+      booking.id,
+      args.customerId,
+      slot?.Garage?.displayName || 'the garage',
+    )
 
-    // Publish slot availability
+    const managers = await this.prisma.manager.findMany({
+      where: { companyId: slot?.Garage?.companyId },
+    })
+    for (const manager of managers) {
+      await this.notificationService.sendNewBooking(
+        booking.id,
+        manager.uid,
+        'Customer',
+        new Date().toLocaleTimeString(),
+      )
+    }
+
     try {
       await publishSlotAvailability(
         this.pubSub,
@@ -82,7 +78,7 @@ export class BookingsResolver {
         new Date(args.startTime),
         new Date(args.endTime),
       )
-    } catch { }
+    } catch {}
 
     return booking
   }
@@ -224,23 +220,24 @@ export class BookingsResolver {
         data: { status: bookingStatus },
       })
       await tx.bookingTimeline.create({
-        data: { bookingId, managerId: user.uid, status: bookingStatus },
+        data: {
+          bookingId,
+          managerId: user.uid,
+          status: bookingStatus,
+          companyId: booking.Slot.Garage.companyId,
+        },
       })
       return b
     })
 
-    // Notify customer of status change
-    try {
-      const statusLabel = bookingStatus.replace(/_/g, ' ').toLowerCase()
-      await this.notificationsService.create({
-        userId: booking.customerId,
-        title: 'Booking Updated',
-        message: `Your booking #${bookingId} status is now: ${statusLabel}.`,
-        type: NotificationType.BOOKING_STATUS_UPDATED,
-      })
-    } catch { }
+    const statusLabel = bookingStatus.replace(/_/g, ' ').toLowerCase()
+    await this.notificationService.sendBookingStatusUpdate(
+      bookingId,
+      booking.customerId,
+      bookingStatus,
+      `Your booking status is now: ${statusLabel}`,
+    )
 
-    // Publish slot availability on checkout
     if (
       bookingStatus === BookingStatus.CHECKED_OUT ||
       bookingStatus === BookingStatus.VALET_RETURNED
@@ -253,7 +250,7 @@ export class BookingsResolver {
           booking.startTime,
           booking.endTime,
         )
-      } catch { }
+      } catch {}
     }
 
     return updated
