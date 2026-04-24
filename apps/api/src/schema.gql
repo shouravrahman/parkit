@@ -1299,11 +1299,17 @@ input UpdateValetAssignmentInput {
 input CreateBookingTimelineInput {
   status: BookingStatus!
   bookingId: Float!
+  companyId: Int
+  valetId: String
+  managerId: String
 }
 
 input UpdateBookingTimelineInput {
   status: BookingStatus
   bookingId: Float
+  companyId: Int
+  valetId: String
+  managerId: String
   id: Float!
 }
 
